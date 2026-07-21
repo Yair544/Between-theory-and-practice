@@ -1,0 +1,18 @@
+# --- Web layer ---------------------------------------------------------------
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+
+# --- Configuration -----------------------------------------------------------
+python-dotenv==1.0.1
+
+# --- AI providers ------------------------------------------------------------
+# Both are optional at runtime: if a package or its key is missing, IncidentIQ
+# falls back to the offline heuristic engine instead of crashing.
+anthropic==0.69.0
+openai==1.59.6
+
+# --- Tests -------------------------------------------------------------------
+pytest==8.3.4
+httpx==0.28.1
