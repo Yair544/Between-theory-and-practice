@@ -1,0 +1,141 @@
+/* ==========================================================================
+   theme.css - design tokens only.
+   Every colour, spacing step, radius and font size used anywhere in the app
+   is declared here. Component stylesheets must never hard-code a raw value.
+   ========================================================================== */
+
+:root {
+  /* --- neutral ramp (light) --- */
+  --c-bg:            #f4f6f8;
+  --c-surface:       #ffffff;
+  --c-surface-2:     #f8fafc;
+  --c-surface-3:     #eef2f6;
+  --c-border:        #d9e0e7;
+  --c-border-strong: #b9c4ce;
+
+  --c-text:          #16202b;
+  --c-text-muted:    #5b6b7c;
+  --c-text-faint:    #8a99a8;
+
+  /* --- brand --- */
+  --c-brand:         #1f6feb;
+  --c-brand-hover:   #1a5fcc;
+  --c-brand-soft:    #e6f0fe;
+  --c-brand-text:    #ffffff;
+
+  /* --- semantic (severity / status) --- */
+  --c-critical:      #c22b3a;
+  --c-critical-soft: #fdeaec;
+  --c-high:          #d1620a;
+  --c-high-soft:     #fdf0e4;
+  --c-medium:        #a3760b;
+  --c-medium-soft:   #fdf6e3;
+  --c-low:           #1f6feb;
+  --c-low-soft:      #e9f1fe;
+  --c-ok:            #1a7f52;
+  --c-ok-soft:       #e6f5ee;
+  --c-info:          #5b6b7c;
+  --c-info-soft:     #eef2f6;
+
+  /* --- epistemic status: the heart of the tool ---
+     Facts, assumptions and hypotheses must never look the same. */
+  --c-fact:          #1a7f52;
+  --c-fact-soft:     #e6f5ee;
+  --c-assumption:    #a3760b;
+  --c-assumption-soft: #fdf6e3;
+  --c-hypothesis:    #6b3fc4;
+  --c-hypothesis-soft: #f0eafb;
+  --c-unsupported:   #c22b3a;
+  --c-unsupported-soft: #fdeaec;
+
+  /* --- spacing scale (4px base) --- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* --- radii --- */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  /* --- typography --- */
+  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --fs-xs:  11px;
+  --fs-sm:  12.5px;
+  --fs-base: 14px;
+  --fs-md:  15px;
+  --fs-lg:  18px;
+  --fs-xl:  22px;
+  --fs-2xl: 28px;
+
+  --lh-tight: 1.25;
+  --lh-base:  1.55;
+
+  /* --- elevation --- */
+  --shadow-sm: 0 1px 2px rgba(16, 26, 36, .07);
+  --shadow-md: 0 2px 8px rgba(16, 26, 36, .10);
+  --shadow-lg: 0 8px 28px rgba(16, 26, 36, .16);
+
+  /* --- layout --- */
+  --sidebar-w: 400px;
+  --header-h: 56px;
+  --statusbar-h: 34px;
+
+  --transition: 140ms ease;
+}
+
+/* --- dark theme -----------------------------------------------------------
+   Only the colour tokens are overridden; every size stays identical. */
+[data-theme="dark"] {
+  --c-bg:            #0e141b;
+  --c-surface:       #161e27;
+  --c-surface-2:     #1b242f;
+  --c-surface-3:     #222d3a;
+  --c-border:        #2a3644;
+  --c-border-strong: #3b4a5c;
+
+  --c-text:          #e6edf3;
+  --c-text-muted:    #9fb0c0;
+  --c-text-faint:    #6e8093;
+
+  --c-brand:         #4b8dfb;
+  --c-brand-hover:   #6ba1fc;
+  --c-brand-soft:    #1a2942;
+  --c-brand-text:    #0e141b;
+
+  --c-critical:      #f0707e;
+  --c-critical-soft: #35191e;
+  --c-high:          #f0a05a;
+  --c-high-soft:     #33220f;
+  --c-medium:        #e2be5c;
+  --c-medium-soft:   #302810;
+  --c-low:           #4b8dfb;
+  --c-low-soft:      #17233a;
+  --c-ok:            #4fc48c;
+  --c-ok-soft:       #12291f;
+  --c-info:          #9fb0c0;
+  --c-info-soft:     #222d3a;
+
+  --c-fact:          #4fc48c;
+  --c-fact-soft:     #12291f;
+  --c-assumption:    #e2be5c;
+  --c-assumption-soft: #302810;
+  --c-hypothesis:    #b18cf5;
+  --c-hypothesis-soft: #241a3a;
+  --c-unsupported:   #f0707e;
+  --c-unsupported-soft: #35191e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .40);
+  --shadow-md: 0 2px 10px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 10px 32px rgba(0, 0, 0, .55);
+}

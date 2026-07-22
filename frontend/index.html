@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IncidentIQ &mdash; AI-assisted incident analysis</title>
+
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/components.css">
+
+  <!-- Applied before first paint so the page never flashes the wrong theme. -->
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("iq.theme"); } catch (e) { /* private mode */ }
+      var prefersDark = window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+    })();
+  </script>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ===================== header ===================== -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">IQ</div>
+      <div>
+        <div class="brand__name">IncidentIQ</div>
+        <div class="brand__tagline">Evidence-first incident analysis</div>
+      </div>
+    </div>
+
+    <div class="app-header__spacer"></div>
+
+    <div class="app-header__actions">
+      <span class="badge" id="provider-badge" title="Which engine produced the current analysis">
+        not run yet
+      </span>
+      <button class="btn btn--ghost btn--sm" id="btn-toggle-sidebar"
+              title="Show or hide the input panel">
+        Input panel
+      </button>
+      <button class="btn btn--icon btn--ghost" id="btn-theme"
+              title="Switch between light and dark" aria-label="Toggle colour theme">
+        &#9681;
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== body ===================== -->
+  <div class="app-body" id="app-body" data-sidebar="expanded">
+
+    <!-- ---------- input sidebar ---------- -->
+    <aside class="sidebar" id="sidebar" aria-label="Incident input">
+      <div class="sidebar__section">
+        <span class="sidebar__label">1 &middot; Load an incident</span>
+        <div id="mount-samples" class="stack-2"></div>
+      </div>
+
+      <div class="sidebar__section">
+        <span class="sidebar__label">2 &middot; Evidence</span>
+        <div id="mount-input"></div>
+      </div>
+
+      <div class="sidebar__section">
+        <span class="sidebar__label">3 &middot; Analyse</span>
+        <div id="mount-run"></div>
+      </div>
+    </aside>
+
+    <!-- ---------- results workspace ---------- -->
+    <main class="workspace">
+      <nav class="tabstrip" role="tablist" id="tabstrip" aria-label="Analysis sections">
+        <button class="tab" role="tab" data-tab="summary"    aria-selected="true">Summary</button>
+        <button class="tab" role="tab" data-tab="evidence"   aria-selected="false">Evidence</button>
+        <button class="tab" role="tab" data-tab="timeline"   aria-selected="false">Timeline</button>
+        <button class="tab" role="tab" data-tab="hypotheses" aria-selected="false">Hypotheses</button>
+        <button class="tab" role="tab" data-tab="risks"      aria-selected="false">Reasoning risks</button>
+        <button class="tab" role="tab" data-tab="actions"    aria-selected="false">Next actions</button>
+        <button class="tab" role="tab" data-tab="report"     aria-selected="false">Postmortem</button>
+      </nav>
+
+      <div class="panes" id="panes">
+        <section class="pane is-active" data-pane="summary"    role="tabpanel"><div class="pane__inner" id="pane-summary"></div></section>
+        <section class="pane"           data-pane="evidence"   role="tabpanel"><div class="pane__inner" id="pane-evidence"></div></section>
+        <section class="pane"           data-pane="timeline"   role="tabpanel"><div class="pane__inner" id="pane-timeline"></div></section>
+        <section class="pane"           data-pane="hypotheses" role="tabpanel"><div class="pane__inner" id="pane-hypotheses"></div></section>
+        <section class="pane"           data-pane="risks"      role="tabpanel"><div class="pane__inner" id="pane-risks"></div></section>
+        <section class="pane"           data-pane="actions"    role="tabpanel"><div class="pane__inner" id="pane-actions"></div></section>
+        <section class="pane"           data-pane="report"     role="tabpanel"><div class="pane__inner" id="pane-report"></div></section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================== status bar ===================== -->
+  <footer class="statusbar" id="statusbar">
+    <span class="statusbar__item" id="status-state">Ready</span>
+    <span class="statusbar__spacer"></span>
+    <span class="statusbar__item" id="status-grounding"></span>
+    <span class="statusbar__item" id="status-model"></span>
+    <span class="statusbar__item" id="status-duration"></span>
+  </footer>
+</div>
+
+<div class="toast-host" id="toast-host" aria-live="polite"></div>
+</body>
+</html>
