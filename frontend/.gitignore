@@ -1,0 +1,32 @@
+Cognitive biases.pdf
+Final Project - Brief Incident IQ (2).docx
+
+# Secrets - never commit real API keys
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Generated output
+exports/
+*.log
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+~$*
+.idea/
+.vscode/
+
+# Commit message shipped with each snapshot; not part of the project
+COMMIT_MESSAGE.txt

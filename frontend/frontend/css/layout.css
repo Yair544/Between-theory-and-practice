@@ -1,0 +1,252 @@
+/* ==========================================================================
+   layout.css - the application shell.
+   Header / sidebar / workspace / status bar. No component styling here.
+   ========================================================================== */
+
+.app {
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr var(--statusbar-h);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- header --------------------------------------------------------------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-brand-text);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: -.02em;
+  flex-shrink: 0;
+}
+
+.brand__name {
+  font-size: var(--fs-md);
+  font-weight: 650;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+.brand__tagline {
+  font-size: var(--fs-sm);
+  color: var(--c-text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__spacer { flex: 1; }
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* --- body: sidebar + workspace -------------------------------------------- */
+
+.app-body {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 0;
+}
+
+.app-body[data-sidebar="collapsed"] {
+  grid-template-columns: 0 1fr;
+}
+
+.sidebar {
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.app-body[data-sidebar="collapsed"] .sidebar {
+  visibility: hidden;
+}
+
+.workspace {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* --- tab strip ------------------------------------------------------------ */
+
+.tabstrip {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-1);
+  padding: 0 var(--sp-4);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabstrip::-webkit-scrollbar { display: none; }
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3);
+  border: 0;
+  background: none;
+  color: var(--c-text-muted);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.tab:hover { color: var(--c-text); }
+
+.tab[aria-selected="true"] {
+  color: var(--c-brand);
+  font-weight: 600;
+}
+
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  bottom: -1px;
+  height: 2px;
+  background: var(--c-brand);
+  border-radius: var(--r-pill) var(--r-pill) 0 0;
+}
+
+.tab:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* --- tab panes ------------------------------------------------------------ */
+
+.panes {
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--sp-6);
+}
+
+.pane { display: none; }
+.pane.is-active { display: block; }
+
+.pane__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* --- section blocks inside a pane ----------------------------------------- */
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.section__title {
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.section__hint {
+  font-size: var(--fs-sm);
+  color: var(--c-text-faint);
+}
+
+/* --- status bar ----------------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  background: var(--c-surface-2);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.statusbar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.statusbar__spacer { flex: 1; }
+
+/* --- sidebar internals ---------------------------------------------------- */
+
+.sidebar__section {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.sidebar__section:last-child { border-bottom: 0; }
+
+.sidebar__label {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--c-text-faint);
+  margin-bottom: var(--sp-2);
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .app-body,
+  .app-body[data-sidebar="collapsed"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    overflow-y: auto;
+  }
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--c-border);
+    overflow: visible;
+  }
+  .app-body[data-sidebar="collapsed"] .sidebar { display: none; }
+  .brand__tagline { display: none; }
+  .panes { padding: var(--sp-4); }
+}
