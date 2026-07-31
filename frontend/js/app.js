@@ -22,6 +22,10 @@ import { mountRunPanel } from "./components/runPanel.js";
 import "./views/summaryView.js";
 import "./views/evidenceView.js";
 import "./views/timelineView.js";
+import "./views/hypothesesView.js";
+import "./views/risksView.js";
+import "./views/actionsView.js";
+import "./views/reportView.js";
 
 /** Shown for any pane that has no view registered yet. */
 const PLACEHOLDER_TEXT = {
