@@ -3,29 +3,27 @@
  *
  * Responsibilities, and nothing else:
  *   1. start the shell (theme, tabs, sidebar, status bar)
- *   2. mount each view into its pane
- *   3. re-render the active pane whenever the store changes
+ *   2. mount the sidebar components
+ *   3. re-render the workspace panes whenever the store changes
  *
  * Views are pure: given the state, return a node. They never reach outside
- * their own pane.
+ * their own pane, and they register themselves via core/registry.js.
  */
 
 import { initShell } from "./core/shell.js";
 import { subscribe } from "./core/store.js";
 import { render, emptyState, qs } from "./core/dom.js";
+import { getView } from "./core/registry.js";
+import { mountInputPanel } from "./components/inputPanel.js";
+import { mountSamplePicker } from "./components/samplePicker.js";
+import { mountRunPanel } from "./components/runPanel.js";
 
-/**
- * Pane id -> render(state) => Node
- * Filled in as the individual views are implemented; anything missing falls
- * back to a placeholder so the shell is always navigable.
- */
-const views = {};
+// Each view module registers itself with registerView() on import.
+import "./views/summaryView.js";
+import "./views/evidenceView.js";
+import "./views/timelineView.js";
 
-/** Register a view for a pane. Called by each view module. */
-export function registerView(paneId, renderFn) {
-  views[paneId] = renderFn;
-}
-
+/** Shown for any pane that has no view registered yet. */
 const PLACEHOLDER_TEXT = {
   summary: "Load a sample incident or paste your own evidence, then press Analyse.",
   evidence: "Every line of input becomes a numbered evidence item that AI claims must cite.",
@@ -41,17 +39,23 @@ function renderPanes(state) {
     const container = qs(`#pane-${paneId}`);
     if (!container) continue;
 
-    const view = views[paneId];
-    if (view) {
-      render(container, view(state));
-    } else {
-      render(container, emptyState("○", "Nothing here yet", text));
-    }
+    const view = getView(paneId);
+    render(container, view
+      ? view(state)
+      : emptyState("○", "Not implemented yet", text));
   }
 }
 
 function boot() {
   initShell();
+
+  // Sidebar: built once, then kept in sync imperatively. Rebuilding textareas
+  // on every keystroke would destroy the caret position.
+  mountInputPanel();
+  mountRunPanel();
+  mountSamplePicker();
+
+  // Workspace: fully re-rendered from state on every change.
   subscribe(renderPanes);
 }
 
