@@ -12,26 +12,11 @@ an event at 10:04 and no evidence item carries that time, that is visible.
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 
 from ..models import Evidence, TimelineEvent
-
-# Numbers, hex ids and quoted values differ between otherwise identical log
-# lines. Blanking them lets "connection timeout to db-3" and
-# "connection timeout to db-7" collapse into one repeated event.
-_VARIABLE = re.compile(r"\b(?:[0-9a-f]{8,}|\d+(?:\.\d+)?(?:ms|s|%)?)\b", re.I)
-
-
-def _shape(text: str) -> str:
-    """A normalised form used only for grouping repeats."""
-    first_line = text.splitlines()[0] if text else ""
-    return _VARIABLE.sub("#", first_line).strip().lower()[:160]
-
-
-def _label(text: str, limit: int = 120) -> str:
-    first_line = text.splitlines()[0].strip()
-    return first_line if len(first_line) <= limit else first_line[: limit - 1] + "…"
+from .textutil import first_line as _label
+from .textutil import message_shape as _shape
 
 
 def build_timeline(evidence: list[Evidence]) -> list[TimelineEvent]:

@@ -18,6 +18,7 @@ from collections import Counter
 
 from ..models import Evidence, ReasoningRisk
 from .biases import name_of
+from .textutil import message_shape as _shape
 
 # Causes an engineer reaches for from memory rather than from this incident.
 _STOCK_CAUSES = re.compile(
@@ -31,14 +32,6 @@ _DEPLOY_WORDS = re.compile(r"\b(deploy\w*|release|rollout|version|v\d+\.\d+|conf
 _HINDSIGHT_WORDS = re.compile(
     r"\b(obviously|clearly|as expected|unsurprisingly|of course|it was always)\b", re.I
 )
-
-_VARIABLE = re.compile(r"\b(?:[0-9a-f]{8,}|\d+(?:\.\d+)?(?:ms|s|%)?)\b", re.I)
-
-
-def _shape(text: str) -> str:
-    first = text.splitlines()[0] if text else ""
-    return _VARIABLE.sub("#", first).strip().lower()[:160]
-
 
 def _risk(bias: str, where: str, impact: str, mitigation: str,
           severity: str = "medium", evidence: list[str] | None = None) -> dict:
