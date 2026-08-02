@@ -13,6 +13,7 @@
 /* --- header --------------------------------------------------------------- */
 
 .app-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-4);
@@ -20,6 +21,16 @@
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border);
   z-index: 20;
+}
+
+/* A thin three-colour hairline across the very top: fact-green, brand-blue,
+   assumption-gold. The whole product in four pixels. */
+.app-header::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--grad-hairline);
 }
 
 .brand {
@@ -32,18 +43,21 @@
 .brand__mark {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-md);
-  background: var(--c-brand);
-  color: var(--c-brand-text);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--grad-brand);
+  color: #fff;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--fs-sm);
-  letter-spacing: -.02em;
+  font-size: 13px;
+  letter-spacing: .02em;
   flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), var(--shadow-sm);
 }
 
 .brand__name {
+  font-family: var(--font-display);
   font-size: var(--fs-md);
   font-weight: 650;
   letter-spacing: -.01em;
@@ -102,8 +116,8 @@
 .tabstrip {
   display: flex;
   align-items: stretch;
-  gap: var(--sp-1);
-  padding: 0 var(--sp-4);
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-4) 0;
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border);
   overflow-x: auto;
@@ -116,22 +130,27 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-3);
+  padding: var(--sp-2) var(--sp-3) calc(var(--sp-2) + 4px);
   border: 0;
+  border-radius: var(--r-md) var(--r-md) 0 0;
   background: none;
   color: var(--c-text-muted);
   font-size: var(--fs-base);
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--transition);
+  transition: color var(--transition), background var(--transition);
 }
 
-.tab:hover { color: var(--c-text); }
+.tab:hover {
+  color: var(--c-text);
+  background: var(--c-surface-2);
+}
 
 .tab[aria-selected="true"] {
   color: var(--c-brand);
   font-weight: 600;
+  background: var(--c-brand-soft);
 }
 
 .tab[aria-selected="true"]::after {
@@ -140,7 +159,7 @@
   left: var(--sp-2);
   right: var(--sp-2);
   bottom: -1px;
-  height: 2px;
+  height: 2.5px;
   background: var(--c-brand);
   border-radius: var(--r-pill) var(--r-pill) 0 0;
 }
@@ -150,16 +169,52 @@
   cursor: not-allowed;
 }
 
+/* Per-tab result counter, populated by the shell once an analysis exists. */
+.tab__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab[aria-selected="true"] .tab__count {
+  background: var(--c-brand);
+  color: var(--c-brand-text);
+}
+
+.tab__count:empty { display: none; }
+
+.tab__count[data-tone="alert"] {
+  background: var(--c-critical-soft);
+  color: var(--c-critical);
+}
+
 /* --- tab panes ------------------------------------------------------------ */
 
 .panes {
   overflow-y: auto;
   min-height: 0;
   padding: var(--sp-6);
+  scroll-behavior: smooth;
 }
 
 .pane { display: none; }
-.pane.is-active { display: block; }
+.pane.is-active {
+  display: block;
+  animation: pane-in 220ms cubic-bezier(.2, .6, .3, 1);
+}
+
+@keyframes pane-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
 
 .pane__inner {
   max-width: 960px;
@@ -180,6 +235,7 @@
 }
 
 .section__title {
+  font-family: var(--font-display);
   font-size: var(--fs-lg);
   font-weight: 650;
   letter-spacing: -.01em;
@@ -209,6 +265,26 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Coloured state dot ahead of the status text; tone set by the shell. */
+.statusbar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-ok);
+  flex-shrink: 0;
+}
+.statusbar__dot[data-tone="running"] {
+  background: var(--c-brand);
+  animation: dot-pulse 1.1s ease-in-out infinite;
+}
+.statusbar__dot[data-tone="error"] { background: var(--c-critical); }
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .35; }
 }
 
 .statusbar__spacer { flex: 1; }
@@ -223,13 +299,30 @@
 .sidebar__section:last-child { border-bottom: 0; }
 
 .sidebar__label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   font-size: var(--fs-xs);
   font-weight: 650;
-  letter-spacing: .06em;
+  letter-spacing: .07em;
   text-transform: uppercase;
   color: var(--c-text-faint);
-  margin-bottom: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+/* The step number in the sidebar labels: a small filled square, so the
+   1-2-3 flow reads at a glance. */
+.sidebar__step {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-sm);
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 /* --- responsive ----------------------------------------------------------- */

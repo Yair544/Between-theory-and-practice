@@ -6,7 +6,7 @@
   <title>IncidentIQ &mdash; AI-assisted incident analysis</title>
 
   <!-- Inline so the app needs no network and no extra route to serve one file. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-family='Segoe UI,Arial' font-size='15' font-weight='700' fill='white' text-anchor='middle'%3EIQ%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232358d8'/%3E%3Ctext x='16' y='22' font-family='Segoe UI,Arial' font-size='15' font-weight='700' fill='white' text-anchor='middle'%3EIQ%3C/text%3E%3C/svg%3E">
 
   <link rel="stylesheet" href="./css/theme.css">
   <link rel="stylesheet" href="./css/base.css">
@@ -26,6 +26,8 @@
 </head>
 
 <body>
+<a class="skip-link" href="#panes">Skip to analysis results</a>
+
 <div class="app">
 
   <!-- ===================== header ===================== -->
@@ -45,12 +47,12 @@
         not run yet
       </span>
       <button class="btn btn--ghost btn--sm" id="btn-toggle-sidebar"
-              title="Show or hide the input panel">
+              aria-pressed="false" title="Show or hide the input panel">
         Input panel
       </button>
       <button class="btn btn--icon btn--ghost" id="btn-theme"
               title="Switch between light and dark" aria-label="Toggle colour theme">
-        &#9681;
+        &#9789;
       </button>
     </div>
   </header>
@@ -61,17 +63,23 @@
     <!-- ---------- input sidebar ---------- -->
     <aside class="sidebar" id="sidebar" aria-label="Incident input">
       <div class="sidebar__section">
-        <span class="sidebar__label">1 &middot; Load an incident</span>
+        <span class="sidebar__label">
+          <span class="sidebar__step" aria-hidden="true">1</span> Load an incident
+        </span>
         <div id="mount-samples" class="stack-2"></div>
       </div>
 
       <div class="sidebar__section">
-        <span class="sidebar__label">2 &middot; Evidence</span>
+        <span class="sidebar__label">
+          <span class="sidebar__step" aria-hidden="true">2</span> Evidence
+        </span>
         <div id="mount-input"></div>
       </div>
 
       <div class="sidebar__section">
-        <span class="sidebar__label">3 &middot; Analyse</span>
+        <span class="sidebar__label">
+          <span class="sidebar__step" aria-hidden="true">3</span> Analyse
+        </span>
         <div id="mount-run"></div>
       </div>
     </aside>
@@ -79,30 +87,75 @@
     <!-- ---------- results workspace ---------- -->
     <main class="workspace">
       <nav class="tabstrip" role="tablist" id="tabstrip" aria-label="Analysis sections">
-        <button class="tab" role="tab" data-tab="summary"    aria-selected="true">Summary</button>
-        <button class="tab" role="tab" data-tab="evidence"   aria-selected="false">Evidence</button>
-        <button class="tab" role="tab" data-tab="timeline"   aria-selected="false">Timeline</button>
-        <button class="tab" role="tab" data-tab="hypotheses" aria-selected="false">Hypotheses</button>
-        <button class="tab" role="tab" data-tab="risks"      aria-selected="false">Reasoning risks</button>
-        <button class="tab" role="tab" data-tab="actions"    aria-selected="false">Next actions</button>
-        <button class="tab" role="tab" data-tab="report"     aria-selected="false">Postmortem</button>
+        <button class="tab" role="tab" id="tabbtn-summary" data-tab="summary"
+                aria-selected="true" aria-controls="panel-summary">
+          Summary
+        </button>
+        <button class="tab" role="tab" id="tabbtn-evidence" data-tab="evidence"
+                aria-selected="false" aria-controls="panel-evidence">
+          Evidence <span class="tab__count" data-count="evidence"></span>
+        </button>
+        <button class="tab" role="tab" id="tabbtn-timeline" data-tab="timeline"
+                aria-selected="false" aria-controls="panel-timeline">
+          Timeline <span class="tab__count" data-count="timeline"></span>
+        </button>
+        <button class="tab" role="tab" id="tabbtn-hypotheses" data-tab="hypotheses"
+                aria-selected="false" aria-controls="panel-hypotheses">
+          Hypotheses <span class="tab__count" data-count="hypotheses"></span>
+        </button>
+        <button class="tab" role="tab" id="tabbtn-risks" data-tab="risks"
+                aria-selected="false" aria-controls="panel-risks">
+          Reasoning risks <span class="tab__count" data-count="risks"></span>
+        </button>
+        <button class="tab" role="tab" id="tabbtn-actions" data-tab="actions"
+                aria-selected="false" aria-controls="panel-actions">
+          Next actions <span class="tab__count" data-count="actions"></span>
+        </button>
+        <button class="tab" role="tab" id="tabbtn-report" data-tab="report"
+                aria-selected="false" aria-controls="panel-report">
+          Postmortem
+        </button>
       </nav>
 
       <div class="panes" id="panes">
-        <section class="pane is-active" data-pane="summary"    role="tabpanel"><div class="pane__inner" id="pane-summary"></div></section>
-        <section class="pane"           data-pane="evidence"   role="tabpanel"><div class="pane__inner" id="pane-evidence"></div></section>
-        <section class="pane"           data-pane="timeline"   role="tabpanel"><div class="pane__inner" id="pane-timeline"></div></section>
-        <section class="pane"           data-pane="hypotheses" role="tabpanel"><div class="pane__inner" id="pane-hypotheses"></div></section>
-        <section class="pane"           data-pane="risks"      role="tabpanel"><div class="pane__inner" id="pane-risks"></div></section>
-        <section class="pane"           data-pane="actions"    role="tabpanel"><div class="pane__inner" id="pane-actions"></div></section>
-        <section class="pane"           data-pane="report"     role="tabpanel"><div class="pane__inner" id="pane-report"></div></section>
+        <section class="pane is-active" data-pane="summary" id="panel-summary"
+                 role="tabpanel" aria-labelledby="tabbtn-summary" tabindex="0">
+          <div class="pane__inner" id="pane-summary"></div>
+        </section>
+        <section class="pane" data-pane="evidence" id="panel-evidence"
+                 role="tabpanel" aria-labelledby="tabbtn-evidence" tabindex="0">
+          <div class="pane__inner" id="pane-evidence"></div>
+        </section>
+        <section class="pane" data-pane="timeline" id="panel-timeline"
+                 role="tabpanel" aria-labelledby="tabbtn-timeline" tabindex="0">
+          <div class="pane__inner" id="pane-timeline"></div>
+        </section>
+        <section class="pane" data-pane="hypotheses" id="panel-hypotheses"
+                 role="tabpanel" aria-labelledby="tabbtn-hypotheses" tabindex="0">
+          <div class="pane__inner" id="pane-hypotheses"></div>
+        </section>
+        <section class="pane" data-pane="risks" id="panel-risks"
+                 role="tabpanel" aria-labelledby="tabbtn-risks" tabindex="0">
+          <div class="pane__inner" id="pane-risks"></div>
+        </section>
+        <section class="pane" data-pane="actions" id="panel-actions"
+                 role="tabpanel" aria-labelledby="tabbtn-actions" tabindex="0">
+          <div class="pane__inner" id="pane-actions"></div>
+        </section>
+        <section class="pane" data-pane="report" id="panel-report"
+                 role="tabpanel" aria-labelledby="tabbtn-report" tabindex="0">
+          <div class="pane__inner" id="pane-report"></div>
+        </section>
       </div>
     </main>
   </div>
 
   <!-- ===================== status bar ===================== -->
   <footer class="statusbar" id="statusbar">
-    <span class="statusbar__item" id="status-state">Ready</span>
+    <span class="statusbar__item">
+      <span class="statusbar__dot" id="status-dot" data-tone="idle" aria-hidden="true"></span>
+      <span id="status-state" role="status" aria-live="polite">Ready</span>
+    </span>
     <span class="statusbar__spacer"></span>
     <span class="statusbar__item" id="status-grounding"></span>
     <span class="statusbar__item" id="status-model"></span>

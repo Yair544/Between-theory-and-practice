@@ -148,8 +148,14 @@ export function renderRunPanel() {
     el("button", {
       class: "btn btn--primary btn--block btn--lg",
       disabled: running ? "disabled" : null,
+      title: "Ctrl+Enter",
       onClick: runAnalysis,
     }, running ? [el("span", { class: "spinner" }), "Analysing…"] : ["Analyse incident"]),
+
+    running ? null : el("div", {
+      class: "xsmall faint",
+      style: { textAlign: "center", marginTop: "var(--sp-2)" },
+    }, [el("kbd", { text: "Ctrl" }), " + ", el("kbd", { text: "Enter" }), " from anywhere"]),
 
     el("div", { class: "row", style: { marginTop: "var(--sp-2)" } }, [
       running
@@ -175,5 +181,14 @@ export function mountRunPanel() {
     if (key === last) return;
     last = key;
     renderRunPanel();
+  });
+
+  // Ctrl+Enter runs the analysis from anywhere - including from inside a
+  // textarea, which is where the user's hands already are after pasting logs.
+  document.addEventListener("keydown", (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      runAnalysis();
+    }
   });
 }

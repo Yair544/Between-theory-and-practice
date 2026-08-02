@@ -14,10 +14,20 @@ const THEME_KEY = "iq.theme";
 export function initTheme() {
   const button = qs("#btn-theme");
   if (!button) return;
+
+  // The glyph shows the theme you would switch TO, not the current one.
+  const sync = () => {
+    const dark = document.documentElement.dataset.theme === "dark";
+    button.textContent = dark ? "☀" : "☽";
+    button.title = dark ? "Switch to light theme" : "Switch to dark theme";
+  };
+  sync();
+
   button.addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode */ }
+    sync();
   });
 }
 
@@ -65,13 +75,44 @@ export function initTabs() {
     for (const pane of qsa(".pane")) {
       pane.classList.toggle("is-active", pane.dataset.pane === state.activeTab);
     }
+    syncTabCounts(state);
   });
+}
+
+/**
+ * Per-tab result counters, so the tab strip doubles as a table of contents:
+ * "Hypotheses 4 · Reasoning risks 2" reads before any pane is opened.
+ * The risks counter goes red when something was flagged - that one number is
+ * the tool's whole thesis in the chrome.
+ */
+function syncTabCounts(state) {
+  const analysis = state.analysis;
+  const counts = analysis
+    ? {
+        evidence: analysis.evidence?.length,
+        timeline: analysis.timeline?.length,
+        hypotheses: analysis.hypotheses?.length,
+        risks: analysis.reasoning_risks?.length,
+        actions: analysis.next_actions?.length,
+      }
+    : {};
+
+  for (const node of qsa(".tab__count")) {
+    const value = counts[node.dataset.count];
+    node.textContent = value ? String(value) : "";
+    if (node.dataset.count === "risks" && value) {
+      node.dataset.tone = "alert";
+    } else {
+      delete node.dataset.tone;
+    }
+  }
 }
 
 /* -------------------------------------------------------------- statusbar */
 
 export function initStatusBar() {
   const stateEl = qs("#status-state");
+  const dotEl = qs("#status-dot");
   const groundingEl = qs("#status-grounding");
   const modelEl = qs("#status-model");
   const durationEl = qs("#status-duration");
@@ -88,6 +129,11 @@ export function initStatusBar() {
         error: `Failed: ${error || "unknown error"}`,
       };
       stateEl.textContent = labels[status] || "";
+    }
+
+    if (dotEl) {
+      dotEl.dataset.tone =
+        status === "running" ? "running" : status === "error" ? "error" : "idle";
     }
 
     const meta = analysis?.meta;
