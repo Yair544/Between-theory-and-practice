@@ -94,7 +94,7 @@
 
 .sidebar {
   background: var(--c-surface);
-  border-right: 1px solid var(--c-border);
+  border-inline-end: 1px solid var(--c-border);
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
@@ -156,8 +156,7 @@
 .tab[aria-selected="true"]::after {
   content: "";
   position: absolute;
-  left: var(--sp-2);
-  right: var(--sp-2);
+  inset-inline: var(--sp-2);
   bottom: -1px;
   height: 2.5px;
   background: var(--c-brand);
@@ -335,7 +334,7 @@
     overflow-y: auto;
   }
   .sidebar {
-    border-right: 0;
+    border-inline-end: 0;
     border-bottom: 1px solid var(--c-border);
     overflow: visible;
   }

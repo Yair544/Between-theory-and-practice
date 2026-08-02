@@ -73,23 +73,32 @@ def main() -> None:
     request = request_for(sys.argv[1])
     base = load_settings()
 
-    if not (base.anthropic_api_key and base.openai_api_key):
+    # Whichever two (or three) providers actually have a key configured.
+    available = [
+        name for name, key in (
+            ("gemini", base.gemini_api_key),
+            ("anthropic", base.anthropic_api_key),
+            ("openai", base.openai_api_key),
+        ) if key
+    ]
+    if len(available) < 2:
         raise SystemExit(
-            "Both ANTHROPIC_API_KEY and OPENAI_API_KEY must be set in .env for a "
-            "cross-model comparison."
+            "A cross-model comparison needs keys for at least two providers in "
+            ".env (GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY). "
+            f"Currently configured: {', '.join(available) or 'none'}."
         )
 
     results = []
-    for provider in ("anthropic", "openai"):
+    for provider in available:
         settings = replace(base, provider=provider)
         print(f"Running {provider}…", flush=True)
         results.append(summarise(provider, analyzer.run_analysis(request, settings)))
 
-    a, b = results
+    a, b = results[0], results[1]
 
     print()
     print(LINE)
-    print(f" Same evidence, same prompt, two models — {sys.argv[1]}")
+    print(f" Same evidence, same prompt, {len(results)} models — {sys.argv[1]}")
     print(LINE)
     for row in results:
         print(f"\n [{row['label']}]  {row['model']}  ({row['duration_ms']} ms)")
@@ -100,12 +109,15 @@ def main() -> None:
               f"  ({row['invalid']} invented citation(s))")
         print(f"   risks flagged      : {', '.join(row['risks']) or 'none'}")
 
+    # Compared pairwise on the first two providers; a third run, if present, is
+    # printed above and left for the reader to weigh.
     shared = a["citations"] & b["citations"]
     union = a["citations"] | b["citations"]
     overlap = len(shared) / len(union) if union else 0.0
 
     print()
     print(LINE)
+    print(f" {a['label']} vs {b['label']}")
     print(f" Evidence overlap on the leading hypothesis : {overlap:.0%}")
     print(f" Confidence gap                             : "
           f"{abs(a['confidence'] - b['confidence']):.0%}")

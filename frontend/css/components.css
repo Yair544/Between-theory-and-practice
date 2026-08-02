@@ -351,7 +351,7 @@ article.card:hover {
   color: var(--c-text-muted);
   font-variant-numeric: tabular-nums;
   min-width: 34px;
-  text-align: right;
+  text-align: end;
 }
 
 /* --- evidence for/against columns ----------------------------------------- */
@@ -374,8 +374,8 @@ article.card:hover {
   border: 1px solid var(--c-border);
 }
 
-.evidence-col--for    { border-left: 3px solid var(--c-ok); }
-.evidence-col--against { border-left: 3px solid var(--c-critical); }
+.evidence-col--for    { border-inline-start: 3px solid var(--c-ok); }
+.evidence-col--against { border-inline-start: 3px solid var(--c-critical); }
 
 .evidence-col__title {
   font-size: var(--fs-xs);
@@ -395,7 +395,7 @@ article.card:hover {
   gap: var(--sp-3);
   padding: var(--sp-2) var(--sp-3);
   border-bottom: 1px solid var(--c-border);
-  border-left: 2px solid transparent;
+  border-inline-start: 2px solid transparent;
   font-size: var(--fs-sm);
   scroll-margin-top: var(--sp-8);
   transition: background var(--transition), border-color var(--transition);
@@ -403,12 +403,12 @@ article.card:hover {
 .evline:last-child { border-bottom: 0; }
 .evline:hover {
   background: var(--c-surface-2);
-  border-left-color: var(--c-border-strong);
+  border-inline-start-color: var(--c-border-strong);
 }
 
 .evline.is-highlighted {
   background: var(--c-brand-soft);
-  border-left-color: var(--c-brand);
+  border-inline-start-color: var(--c-brand);
   animation: flash 1.6s ease;
 }
 
@@ -444,12 +444,12 @@ article.card:hover {
 
 /* --- timeline ------------------------------------------------------------- */
 
-.timeline { position: relative; padding-left: var(--sp-6); }
+.timeline { position: relative; padding-inline-start: var(--sp-6); }
 
 .timeline::before {
   content: "";
   position: absolute;
-  left: 7px;
+  inset-inline-start: 7px;
   top: 6px;
   bottom: 6px;
   width: 2px;
@@ -461,7 +461,7 @@ article.card:hover {
 
 .tl-item__dot {
   position: absolute;
-  left: calc(var(--sp-6) * -1 + 2px);
+  inset-inline-start: calc(var(--sp-6) * -1 + 2px);
   top: 4px;
   width: 12px;
   height: 12px;
@@ -508,7 +508,7 @@ article.card:hover {
 .table th,
 .table td {
   padding: var(--sp-2) var(--sp-3);
-  text-align: left;
+  text-align: start;
   border-bottom: 1px solid var(--c-border);
   vertical-align: top;
 }
@@ -538,24 +538,24 @@ article.card:hover {
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
   border: 1px solid color-mix(in srgb, var(--c-info) 22%, transparent);
-  border-left: 3px solid var(--c-info);
+  border-inline-start: 3px solid var(--c-info);
   background: var(--c-info-soft);
   font-size: var(--fs-sm);
 }
 
 .callout--warn {
   border-color: color-mix(in srgb, var(--c-high) 25%, transparent);
-  border-left-color: var(--c-high);
+  border-inline-start-color: var(--c-high);
   background: var(--c-high-soft);
 }
 .callout--danger {
   border-color: color-mix(in srgb, var(--c-critical) 25%, transparent);
-  border-left-color: var(--c-critical);
+  border-inline-start-color: var(--c-critical);
   background: var(--c-critical-soft);
 }
 .callout--ok {
   border-color: color-mix(in srgb, var(--c-ok) 25%, transparent);
-  border-left-color: var(--c-ok);
+  border-inline-start-color: var(--c-ok);
   background: var(--c-ok-soft);
 }
 
@@ -658,7 +658,7 @@ article.card:hover {
 
 .toast-host {
   position: fixed;
-  right: var(--sp-5);
+  inset-inline-end: var(--sp-5);
   bottom: var(--sp-6);
   display: flex;
   flex-direction: column;
@@ -675,7 +675,7 @@ article.card:hover {
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
   border: 1px solid var(--c-border);
-  border-left: 3px solid var(--c-brand);
+  border-inline-start: 3px solid var(--c-brand);
   background: var(--c-surface);
   box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
@@ -683,9 +683,9 @@ article.card:hover {
   animation: toast-in 200ms cubic-bezier(.2, .6, .3, 1);
 }
 
-.toast--error { border-left-color: var(--c-critical); }
-.toast--ok    { border-left-color: var(--c-ok); }
-.toast--warn  { border-left-color: var(--c-high); }
+.toast--error { border-inline-start-color: var(--c-critical); }
+.toast--ok    { border-inline-start-color: var(--c-ok); }
+.toast--warn  { border-inline-start-color: var(--c-high); }
 
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(10px) scale(.98); }
@@ -723,3 +723,58 @@ article.card:hover {
   max-height: 60vh;
   overflow-y: auto;
 }
+
+/* --- language switch ------------------------------------------------------ */
+
+.langswitch {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  gap: 2px;
+}
+
+.langswitch__btn {
+  padding: 3px var(--sp-3);
+  border: 0;
+  border-radius: calc(var(--r-md) - 3px);
+  background: transparent;
+  color: var(--c-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.langswitch__btn:hover { color: var(--c-text); }
+
+.langswitch__btn[aria-pressed="true"] {
+  background: var(--c-brand);
+  color: var(--c-brand-text);
+}
+
+/* --- direction islands ----------------------------------------------------
+   Machine text keeps running left-to-right even when the interface is Hebrew.
+   A stack trace, a log line or an ISO timestamp mirrored into RTL is not
+   "localised", it is corrupted: the bracket that opens the frame ends up on
+   the wrong side and the reader can no longer follow the call order.
+   These are the only places direction is pinned by hand. */
+
+.evline__text,
+.evline__id,
+.code-block,
+.mono,
+.tl-item__time,
+.evref,
+.textarea:not(.textarea--prose) {
+  direction: ltr;
+  text-align: left;
+}
+
+/* The evidence row keeps its own grid direction so the id column stays beside
+   the text it labels, rather than jumping across the row in Hebrew. */
+[dir="rtl"] .evline { direction: ltr; }
+[dir="rtl"] .evline__meta { direction: rtl; text-align: right; }

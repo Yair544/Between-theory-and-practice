@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -17,6 +19,13 @@ class AnalysisOptions(BaseModel):
         description="Replace emails, IPs, tokens and card numbers before calling a provider.",
     )
     hypothesis_count: int = Field(default=4, ge=2, le=8)
+    language: Literal["en", "he"] = Field(
+        default="en",
+        description=(
+            "Language for the model's prose. Evidence text is never translated - "
+            "a log line quoted back in another language is no longer a quotation."
+        ),
+    )
 
 
 class IncidentRequest(BaseModel):

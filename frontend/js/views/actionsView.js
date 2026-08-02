@@ -9,17 +9,18 @@
 import { el, section } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { priorityTone } from "../core/format.js";
+import { t } from "../core/i18n.js";
 import { evidenceRefs, evidenceIdSet, badge, callout, notRunYet } from "./widgets.js";
 
 const PRIORITY_ORDER = { P1: 0, P2: 1, P3: 2, P4: 3 };
 
-const OWNER_LABEL = {
-  engineer: "on-call engineer",
-  sre: "SRE / platform",
-  manager: "engineering manager",
-  support: "support team",
-  security: "security",
-};
+/** Owner roles resolve through `owner.<role>` keys, falling back to the raw
+ *  value so a role the backend invents still renders as something. */
+function ownerLabel(role) {
+  const key = `owner.${role}`;
+  const label = t(key);
+  return label === key ? role || "—" : label;
+}
 
 function actionRow(action, index, knownIds) {
   const grounded = Boolean(action.evidence?.length);
@@ -31,21 +32,21 @@ function actionRow(action, index, knownIds) {
       action.rationale && el("div", { class: "xsmall faint", text: action.rationale }),
       !grounded
         ? el("div", { class: "xsmall", style: { color: "var(--c-unsupported)" } }, [
-            "generic advice — no evidence in this incident motivates it",
+            t("actions.genericNote"),
           ])
         : null,
     ]),
     el("td", { class: "nowrap" }, [
-      el("span", { class: "xsmall", text: OWNER_LABEL[action.owner_role] || action.owner_role || "—" }),
+      el("span", { class: "xsmall", text: ownerLabel(action.owner_role) }),
     ]),
-    el("td", {}, [evidenceRefs(action.evidence, knownIds, { emptyLabel: "ungrounded" })]),
+    el("td", {}, [evidenceRefs(action.evidence, knownIds, { emptyLabel: t("actions.ungrounded") })]),
   ]);
 }
 
 function renderActions(state) {
   const { analysis } = state;
   if (!analysis) {
-    return notRunYet("Recommended debugging steps appear here once an analysis has run.");
+    return notRunYet(t("actions.empty"));
   }
 
   const actions = [...(analysis.next_actions || [])].sort(
@@ -54,30 +55,28 @@ function renderActions(state) {
   const knownIds = evidenceIdSet(analysis);
 
   if (!actions.length) {
-    return callout("warn", "!", "No next actions produced",
-      "Nothing actionable could be derived from the current evidence.");
+    return callout("warn", "!", t("actions.none.title"), t("actions.none.body"));
   }
 
   const ungrounded = actions.filter((action) => !action.evidence?.length).length;
 
   return el("div", { class: "stack" }, [
     ungrounded
-      ? callout("warn", "!", `${ungrounded} of ${actions.length} steps are generic`,
-          "They are not wrong, but nothing in this incident specifically points to them. " +
-          "Do the evidence-backed steps first.")
-      : callout("ok", "✓", "Every step is tied to specific evidence",
-          "Each row cites the input that motivates it."),
+      ? callout("warn", "!",
+          t("actions.generic.title", { count: ungrounded, total: actions.length }),
+          t("actions.generic.body"))
+      : callout("ok", "✓", t("actions.grounded.title"), t("actions.grounded.body")),
 
-    section("Next debugging steps", "highest priority first",
+    section(t("actions.section"), t("actions.section.hint"),
       el("div", { class: "card card--flush" }, [
         el("div", { class: "table-wrap" }, [
           el("table", { class: "table" }, [
             el("thead", {}, [
               el("tr", {}, [
-                el("th", { text: "Pri" }),
-                el("th", { text: "Action" }),
-                el("th", { text: "Owner" }),
-                el("th", { text: "Because of" }),
+                el("th", { text: t("actions.col.priority") }),
+                el("th", { text: t("actions.col.action") }),
+                el("th", { text: t("actions.col.owner") }),
+                el("th", { text: t("actions.col.because") }),
               ]),
             ]),
             el("tbody", {}, actions.map((action, index) => actionRow(action, index, knownIds))),
@@ -85,10 +84,7 @@ function renderActions(state) {
         ]),
       ])),
 
-    callout("info", "i", "Before you run anything destructive",
-      "A restart or a rollback both fixes and destroys evidence. If the incident is " +
-      "not actively hurting users, capture the current state first — the next hour of " +
-      "investigation depends on it."),
+    callout("info", "i", t("actions.warn.title"), t("actions.warn.body")),
   ]);
 }
 

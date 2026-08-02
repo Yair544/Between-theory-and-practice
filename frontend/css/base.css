@@ -42,7 +42,7 @@ h4 { font-size: var(--fs-base); }
 p { margin: 0 0 var(--sp-3); }
 p:last-child { margin-bottom: 0; }
 
-ul, ol { margin: 0 0 var(--sp-3); padding-left: var(--sp-5); }
+ul, ol { margin: 0 0 var(--sp-3); padding-inline-start: var(--sp-5); }
 li { margin-bottom: var(--sp-1); }
 
 a {
@@ -105,7 +105,8 @@ hr {
 /* Keyboard users can jump straight past the input sidebar to the results. */
 .skip-link {
   position: absolute;
-  top: 8px; left: 8px;
+  top: 8px;
+  inset-inline-start: 8px;
   z-index: 200;
   padding: var(--sp-2) var(--sp-4);
   border-radius: var(--r-md);

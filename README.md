@@ -49,11 +49,20 @@ banner on the summary. Nothing produced offline can be mistaken for model output
 To enable the full analysis, open `.env` and fill in one key:
 
 ```ini
-ANTHROPIC_API_KEY=sk-ant-...
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=<paste your key>
 ```
 
+Get a Gemini key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+Anthropic and OpenAI are supported too — set `LLM_PROVIDER` accordingly.
+
 `.env` is created automatically from `.env.example` on first run, and is
-git-ignored.
+git-ignored. Never paste a key anywhere else; if one has been pasted somewhere
+it does not belong, revoke it and issue a new one.
+
+> Google has issued more than one key format (older keys begin `AIza`, newer
+> ones `AQ.`). Both are valid — paste whatever the console shows you. If the key
+> is refused, the app reports Google's own reason rather than guessing.
 
 ---
 
@@ -79,6 +88,12 @@ git-ignored.
 | Next actions | What to do, each tied to the evidence that motivates it. |
 | Postmortem | A draft you can export as Markdown. |
 
+**Language.** The `EN | עב` switch in the header changes the whole interface, flips
+the layout to right-to-left, and tells the model to write its analysis in Hebrew.
+Log lines, stack traces, timestamps and evidence ids always stay left-to-right and
+in their original wording — a quoted log line translated into another language is
+no longer a quotation, and could not be checked against the input.
+
 Click any `E7`-style pill anywhere in the app to jump to that exact input line.
 A citation shown **in red** points at an evidence item that does not exist — the
 model invented it, and the tool is telling you.
@@ -95,7 +110,7 @@ model invented it, and the tool is telling you.
                                                           │
                              ┌────────────────────────────┘
                              ▼
-                     model pass (Anthropic / OpenAI)
+                  model pass (Gemini / Claude / GPT)
                              │           │
                              │           └──► offline engine, if no key or on failure
                              ▼
@@ -139,18 +154,20 @@ IncidentIQ/
 │       ├── redaction.py         strips secret-shaped values pre-flight
 │       ├── evidence.py          text -> numbered, citable items
 │       ├── timeline.py          observed events only, never inferred
-│       ├── llm/                 provider abstraction (Anthropic / OpenAI)
+│       ├── llm/                 provider abstraction (Gemini / Claude / GPT)
 │       ├── prompts.py           every instruction sent to a model
 │       ├── biases.py            the eight biases from the brief
 │       ├── verifier.py          grounding check
 │       ├── risk_detector.py     rule-based bias detection
 │       ├── offline_engine.py    the no-model analysis
+│       ├── offline_strings.py   its wording, per language
 │       ├── analyzer.py          the pipeline
 │       └── report.py            Markdown postmortem
 ├── frontend/                    HTML + CSS + ES modules, no build step
+│   └── js/core/i18n.js          English + Hebrew dictionaries, RTL
 ├── data/samples/                example incidents (drop in a .json)
 ├── docs/                        prompt library, AI usage log, report
-└── tests/                       49 tests, none of which call a model
+└── tests/                       73 tests, none of which call a model
 ```
 
 ## Tests
@@ -166,7 +183,8 @@ are most likely to touch:
 
 | Variable | Default | Notes |
 |---|---|---|
-| `LLM_PROVIDER` | `anthropic` | `anthropic`, `openai`, or `offline` |
+| `LLM_PROVIDER` | `gemini` | `gemini`, `anthropic`, `openai`, or `offline` |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | `gemini-2.5-pro` reasons harder, costs more |
 | `ANTHROPIC_MODEL` | `claude-opus-4-8` | `claude-sonnet-5` is cheaper and adequate |
 | `HYPOTHESIS_COUNT` | `4` | how many competing explanations to require |
 | `REDACT_PII` | `true` | strip secret-shaped values before any provider call |
@@ -176,8 +194,9 @@ are most likely to touch:
 
 | Tool | Used for |
 |---|---|
-| Anthropic Claude (`claude-opus-4-8`) | The analysis and challenge passes at runtime; the bulk of development assistance |
-| OpenAI (`gpt-4o`) | Optional second provider, used for the cross-model comparison in `docs/PROMPTS.md` |
+| Google Gemini (`gemini-2.5-flash`) | The analysis and challenge passes at runtime (default provider) |
+| Anthropic Claude (`claude-opus-4-8`) | Alternative provider; the bulk of development assistance |
+| OpenAI (`gpt-4o`) | Optional third provider for the cross-model comparison in `docs/PROMPTS.md` |
 
 The prompts the system sends are in `backend/services/prompts.py` and are
 reproduced with commentary in `docs/PROMPTS.md`. Where AI helped during

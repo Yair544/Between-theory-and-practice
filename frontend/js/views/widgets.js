@@ -10,6 +10,7 @@
 import { el, qs } from "../core/dom.js";
 import { setState } from "../core/store.js";
 import { pct, confidenceBand, severityTone } from "../core/format.js";
+import { t } from "../core/i18n.js";
 
 /** Jump to the Evidence tab and flash the referenced line. */
 function focusEvidence(evidenceId) {
@@ -35,26 +36,26 @@ export function evidenceRef(id, knownIds) {
   if (!exists) {
     return el("span", {
       class: "evref evref--broken",
-      title: `${id} does not exist in the input. The model invented this citation.`,
+      title: t("evref.broken.title", { id }),
       text: id,
     });
   }
   return el("button", {
     class: "evref",
     type: "button",
-    title: "Show this evidence",
+    title: t("evref.show"),
     onClick: () => focusEvidence(id),
   }, [id]);
 }
 
 /** Render a list of citations, or an explicit "no evidence cited" marker. */
-export function evidenceRefs(ids, knownIds, { emptyLabel = "no evidence cited" } = {}) {
+export function evidenceRefs(ids, knownIds, { emptyLabel } = {}) {
   const list = Array.isArray(ids) ? ids : [];
   if (!list.length) {
     return el("span", {
       class: "badge badge--unsupported",
       title: "This statement is not backed by any input evidence.",
-      text: emptyLabel,
+      text: emptyLabel || t("empty.noEvidence"),
     });
   }
   return el("span", { class: "evref-list" }, list.map((id) => evidenceRef(id, knownIds)));
@@ -102,7 +103,7 @@ export function evidenceIdSet(analysis) {
 export function notRunYet(text) {
   return el("div", { class: "empty" }, [
     el("div", { class: "empty__icon", text: "○" }),
-    el("div", { class: "empty__title", text: "No analysis yet" }),
+    el("div", { class: "empty__title", text: t("empty.notRun") }),
     el("div", { class: "empty__text", text }),
   ]);
 }

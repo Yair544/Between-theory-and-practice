@@ -33,6 +33,13 @@ const initialState = {
 
   /** Which workspace tab is visible. */
   activeTab: "summary",
+
+  /**
+   * Interface language. Kept in state rather than in i18n.js so that changing
+   * it re-renders every view through the normal subscribe path - there is no
+   * separate "apply translations" pass that can be forgotten.
+   */
+  language: "en",
 };
 
 let state = structuredClone(initialState);

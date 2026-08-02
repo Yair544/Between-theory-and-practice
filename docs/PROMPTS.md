@@ -94,9 +94,13 @@ someone else's numbers is not an experiment.
 .venv\Scripts\python tools\compare_models.py checkout-v241
 ```
 
-Requires both `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` in `.env`. It runs the
-identical prompt through both providers and prints a comparison of leading
-hypothesis, confidence, citation overlap and grounding score.
+Requires keys for at least two of `GEMINI_API_KEY`, `ANTHROPIC_API_KEY` and
+`OPENAI_API_KEY` in `.env`. It runs the identical prompt through each configured
+provider and prints a comparison of leading hypothesis, confidence, citation
+overlap and grounding score.
+
+Gemini is the default provider, so the cheapest second opinion to add is an
+Anthropic or OpenAI key.
 
 | Sample | Model A leading hypothesis | Model B leading hypothesis | Agree? | Grounding A / B |
 |---|---|---|---|---|

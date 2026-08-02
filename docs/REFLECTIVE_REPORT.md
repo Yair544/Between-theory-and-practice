@@ -53,7 +53,7 @@ system:
  FastAPI ─► redact ─► extract evidence ─► observed timeline
                                               │
                                               ▼
-                                    model pass (Claude / GPT)
+                              model pass (Gemini / Claude / GPT)
                                        │              │
                                        │              └─► offline engine
                                        ▼                   (no key, or on failure)
@@ -126,7 +126,19 @@ in the text, so the rule can only flag the *shape* that invites it.
 Beyond the basic scope: file upload, evidence-source filtering, confidence
 ranking, evidence for/against tables, role-based rewrites (engineer / manager /
 support), unsupported-claim detection, a devil's-advocate pass, PII redaction, an
-offline mode, and a cross-model comparison tool.
+offline mode, a cross-model comparison tool, and a full Hebrew interface with
+right-to-left layout.
+
+**On the Hebrew mode**, one decision is worth recording because it follows from
+the same principle as the rest of the tool. The interface and the model's prose
+are translated; the evidence is not. A log line quoted back in Hebrew is no
+longer a quotation — it cannot be matched against the input, so the verifier
+could not check it and the citation would become decorative. Machine text
+(log lines, stack traces, timestamps, evidence ids) therefore stays in its
+original wording and left-to-right direction even when everything around it is
+Hebrew. The offline engine is translated too: it runs whenever a model call
+fails, and on a free-tier key that happens often enough that a Hebrew user meets
+it in normal use rather than as an edge case.
 
 ---
 
@@ -136,9 +148,9 @@ offline mode, and a cross-model comparison tool.
 |---|---|---|
 | Backend | Python 3.10+, FastAPI, Pydantic v2 | Typed schemas that double as validation and as the API contract |
 | Frontend | HTML + CSS + native ES modules, **no build step** | The tool has to start with one double-click on a machine we do not control. A `npm install` in that path is a way for the demo to fail |
-| AI | Anthropic Claude (`claude-opus-4-8`) primary; OpenAI (`gpt-4o`) as second opinion | Behind a provider interface; nothing above that layer imports a vendor SDK |
+| AI | Google Gemini (`gemini-2.5-flash`) primary; Claude and GPT selectable | Behind a provider interface; nothing above it imports a vendor SDK, so switching model is one line in `.env` |
 | Config | `python-dotenv` | Keys live in `.env`, never in git |
-| Tests | pytest — 49 tests | None call a model |
+| Tests | pytest — 73 tests | None call a model |
 
 **A note on the frontend choice.** React would have been faster to write. It
 would also have meant a build step, `node_modules`, and a version of the app that
@@ -227,7 +239,7 @@ this project is about.
 | Method the brief asks for | How we did it |
 |---|---|
 | Check whether each AI claim is supported by the input | Automated: `verifier.py` checks every citation against the evidence set on every run |
-| Compare multiple prompts or models | `tools/compare_models.py` runs identical input through Claude and GPT and diffs the leading hypothesis, citation overlap and grounding score |
+| Compare multiple prompts or models | `tools/compare_models.py` runs identical input through every provider that has a key configured (Gemini, Claude, GPT) and diffs the leading hypothesis, citation overlap and grounding score |
 | Ask the AI to argue against its own conclusion | Built into the product as the devil's-advocate pass |
 | Test whether small prompt changes produce different answers | Single-variable experiments, procedure in [`PROMPTS.md` §4.2](PROMPTS.md) |
 | Record examples of hallucination and overconfidence | Every response carries a `verification` block; the overconfidence rule flags high-confidence/low-evidence hypotheses |
@@ -340,6 +352,18 @@ on by default, and the UI reports how many were removed. Its limits are stated i
 the module docstring: it is pattern matching, so it catches an email and misses
 "customer 88213 requested deletion". For genuinely sensitive systems the honest
 answer is a local model or no model.
+
+We also learned this one the hard way rather than in the abstract. Midway through
+the project one of us pasted an API credential directly into an AI chat window to
+speed up configuration — having already written the module whose entire job is
+stopping secrets from reaching a third party. The key was revoked and reissued,
+and the incident is written up in [`AI_USAGE_LOG.md`](AI_USAGE_LOG.md). The
+lesson generalises past our own carelessness: **the safeguards a tool enforces do
+not automatically govern the people operating it.** A redaction pass that runs on
+`POST /api/analyze` says nothing about what a tired engineer pastes into a chat
+at 2am, and an incident-response tool is used mostly by tired engineers. It is
+the same automation-bias failure in a different costume — trusting that because
+the system handles it, we do not have to.
 
 **Who is responsible if the AI recommends a harmful action.** The person who runs
 the command. That is not a disclaimer — it is a design constraint, and it is why

@@ -65,6 +65,7 @@ def _run_model_pass(client, *, request, evidence, observed, coverage_note, setti
         observed_timeline=_render_observed(observed),
         hypothesis_count=request.options.hypothesis_count,
         coverage_note=coverage_note,
+        language=request.options.language,
     )
 
     result = client.complete(
@@ -77,13 +78,21 @@ def _run_model_pass(client, *, request, evidence, observed, coverage_note, setti
     return payload, [*result.warnings, *parse_warnings], result
 
 
-def _run_challenge_pass(client, *, leader, evidence, settings) -> str:
+def _run_challenge_pass(
+    client, *, leader, evidence, settings, language="en"
+) -> tuple[str, list[str]]:
     """
     Ask a fresh context to argue against the leading hypothesis.
 
-    Failures here are swallowed: the rebuttal is a bonus, and losing it should
-    not cost the user the analysis they already have.
+    Returns (rebuttal, warnings). Failures do not raise: the rebuttal is a
+    bonus and losing it must not cost the user the analysis they already have.
+    But the reason is reported rather than swallowed - "did not return a usable
+    result" told us nothing when this actually broke.
     """
+    # The rebuttal is one short paragraph, yet this call needs a budget far
+    # larger than its output: on a thinking model the reasoning is billed
+    # against the same allowance, and 2000 was not enough to hold both.
+    budget = max(4000, settings.max_output_tokens // 2)
     try:
         result = client.complete(
             system=prompts.CHALLENGE_SYSTEM,
@@ -93,14 +102,20 @@ def _run_challenge_pass(client, *, leader, evidence, settings) -> str:
                 supporting=list(leader.get("supporting_evidence") or []),
                 contradicting=list(leader.get("contradicting_evidence") or []),
                 evidence_block=render_for_prompt(evidence),
+                language=language,
             ),
-            max_tokens=2000,
+            max_tokens=budget,
             json_schema=prompts.CHALLENGE_SCHEMA,
         )
-        payload, _ = parse_json_object(result.text)
-        return str(payload.get("rebuttal") or "")
-    except Exception:  # noqa: BLE001 - a missing rebuttal must not cost the analysis
-        return ""
+        payload, parse_warnings = parse_json_object(result.text)
+        rebuttal = str(payload.get("rebuttal") or "")
+        if not rebuttal:
+            return "", ["The counter-argument pass returned an empty rebuttal."]
+        return rebuttal, [*result.warnings, *parse_warnings]
+    except LLMError as exc:
+        return "", [f"The counter-argument pass failed: {exc}"]
+    except Exception as exc:  # noqa: BLE001 - never fail the whole run here
+        return "", [f"The counter-argument pass failed unexpectedly: {exc}"]
 
 
 def _merge_timeline(observed: list[TimelineEvent], inferred: list[dict]) -> list[TimelineEvent]:
@@ -157,7 +172,10 @@ def run_analysis(request: IncidentRequest, settings: Settings) -> Analysis:
 
     if offline:
         payload = offline_engine.analyse(
-            evidence, title=request.title, hypothesis_count=request.options.hypothesis_count
+            evidence,
+            title=request.title,
+            hypothesis_count=request.options.hypothesis_count,
+            language=request.options.language,
         )
     else:
         client = build_client(settings)
@@ -179,7 +197,10 @@ def run_analysis(request: IncidentRequest, settings: Settings) -> Analysis:
             provider = "offline"
             model_name = "deterministic-engine"
             payload = offline_engine.analyse(
-                evidence, title=request.title, hypothesis_count=request.options.hypothesis_count
+                evidence,
+                title=request.title,
+                hypothesis_count=request.options.hypothesis_count,
+                language=request.options.language,
             )
 
     # 5. verify, then remove fabricated ids from what the UI will render ----
@@ -196,13 +217,16 @@ def run_analysis(request: IncidentRequest, settings: Settings) -> Analysis:
     raw_hypotheses.sort(key=lambda item: item.get("confidence", 0), reverse=True)
 
     if request.options.devils_advocate and not offline and raw_hypotheses:
-        rebuttal = _run_challenge_pass(
-            build_client(settings), leader=raw_hypotheses[0], evidence=evidence, settings=settings
+        rebuttal, challenge_warnings = _run_challenge_pass(
+            build_client(settings),
+            leader=raw_hypotheses[0],
+            evidence=evidence,
+            settings=settings,
+            language=request.options.language,
         )
         if rebuttal:
             raw_hypotheses[0]["rebuttal"] = rebuttal
-        else:
-            warnings.append("The counter-argument pass did not return a usable result.")
+        warnings.extend(challenge_warnings)
 
     # 7. reasoning risks ---------------------------------------------------
     heuristic_risks = risk_detector.detect(

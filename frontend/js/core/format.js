@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 /**
  * format.js - presentation helpers shared by every view.
  *
@@ -17,11 +19,11 @@ export function pct(value) {
  * confirming a root cause is a human decision made after running a test.
  */
 export function confidenceBand(value) {
-  if (value === null || value === undefined) return { label: "unrated", tone: "info" };
-  if (value >= 0.7) return { label: "well supported", tone: "critical" };
-  if (value >= 0.45) return { label: "plausible", tone: "high" };
-  if (value >= 0.2) return { label: "weak", tone: "medium" };
-  return { label: "speculative", tone: "low" };
+  if (value === null || value === undefined) return { label: t("band.unrated"), tone: "info" };
+  if (value >= 0.7) return { label: t("band.wellSupported"), tone: "critical" };
+  if (value >= 0.45) return { label: t("band.plausible"), tone: "high" };
+  if (value >= 0.2) return { label: t("band.weak"), tone: "medium" };
+  return { label: t("band.speculative"), tone: "low" };
 }
 
 /** Severity string -> badge modifier. Unknown values fall back to neutral. */
@@ -70,15 +72,9 @@ export function formatCount(n) {
 
 /** Human label for a source key coming from the backend. */
 export function sourceLabel(source) {
-  const map = {
-    description: "Incident description",
-    logs: "Application logs",
-    errors: "Error traces",
-    alerts: "Monitoring alerts",
-    deploy_notes: "Deployment notes",
-    user_reports: "User reports",
-  };
-  return map[source] || source;
+  const key = `source.${source}`;
+  const label = t(key);
+  return label === key ? source : label;
 }
 
 /** Truncate for a one-line preview without cutting mid-word where avoidable. */

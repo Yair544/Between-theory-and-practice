@@ -9,6 +9,7 @@
 import { el, section, qsa } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { formatTs, sourceLabel, formatCount } from "../core/format.js";
+import { t } from "../core/i18n.js";
 import { severityBadge, callout, notRunYet } from "./widgets.js";
 
 /** Filter state lives here so typing does not trigger a full pane rebuild. */
@@ -29,7 +30,7 @@ function evidenceRow(item) {
       el("div", { class: "evline__text", text: item.text }),
       el("div", { class: "evline__meta" }, [
         el("span", { text: sourceLabel(item.source) }),
-        item.line ? el("span", { text: `line ${item.line}` }) : null,
+        item.line ? el("span", { text: t("evidence.line", { line: item.line }) }) : null,
         item.timestamp ? el("span", { text: formatTs(item.timestamp) }) : null,
         item.severity ? severityBadge(item.severity) : null,
       ]),
@@ -48,14 +49,14 @@ function applyFilter(root) {
     if (visible) shown += 1;
   }
   const counter = root.querySelector("[data-role='ev-count']");
-  if (counter) counter.textContent = `${shown} shown`;
+  if (counter) counter.textContent = t("evidence.shown", { count: shown });
 }
 
 function toolbar(sources, root) {
   const search = el("input", {
     class: "input",
     type: "search",
-    placeholder: "Filter evidence…",
+    placeholder: t("evidence.filter"),
     value: query,
     onInput: (event) => { query = event.target.value; applyFilter(root); },
   });
@@ -72,7 +73,7 @@ function toolbar(sources, root) {
         }
         applyFilter(root);
       },
-    }, [source === "all" ? "all sources" : sourceLabel(source)]));
+    }, [source === "all" ? t("evidence.allSources") : sourceLabel(source)]));
 
   return el("div", { class: "stack-2", style: { marginBottom: "var(--sp-3)" } }, [
     el("div", { class: "row" }, [
@@ -86,14 +87,12 @@ function toolbar(sources, root) {
 function renderEvidence(state) {
   const { analysis } = state;
   if (!analysis) {
-    return notRunYet("Once an analysis runs, every input line appears here with a stable ID.");
+    return notRunYet(t("evidence.empty"));
   }
 
   const items = analysis.evidence || [];
   if (!items.length) {
-    return callout("warn", "!", "No evidence extracted",
-      "Nothing in the input could be turned into an evidence item. " +
-      "Check that the logs are plain text rather than a screenshot or binary file.");
+    return callout("warn", "!", t("evidence.none.title"), t("evidence.none.body"));
   }
 
   const sources = [...new Set(items.map((item) => item.source))];
@@ -110,16 +109,14 @@ function renderEvidence(state) {
   const stats = analysis.meta?.input_stats;
 
   return el("div", { class: "stack" }, [
-    callout("info", "#", `${formatCount(items.length)} evidence items`,
-      "Every claim the tool makes cites these IDs. A claim with no ID next to it " +
-      "is a claim nobody has checked."),
+    callout("info", "#", t("evidence.count.title", { count: formatCount(items.length) }),
+      t("evidence.count.body")),
     stats?.redacted_count
       ? callout("ok", "🛡",
-          `${stats.redacted_count} value(s) redacted before leaving this machine`,
-          "Emails, IP addresses, bearer tokens and card-shaped numbers were replaced " +
-          "with placeholders. The originals never reached the model provider.")
+          t("evidence.redacted.title", { count: stats.redacted_count }),
+          t("evidence.redacted.body"))
       : null,
-    section("Evidence", "grouped by source, filterable", root),
+    section(t("evidence.section"), t("evidence.section.hint"), root),
   ]);
 }
 

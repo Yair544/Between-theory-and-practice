@@ -103,6 +103,63 @@ and *wrong about this code*. That is the failure mode hardest to catch by asking
 a follow-up question, because the follow-up gets the same correct-in-general
 answer.
 
+### We leaked our own API key into a chat window
+**Outcome:** misled — by ourselves, not by the model
+
+While switching the project to Gemini, one of us pasted an API credential
+straight into an AI chat to "just set it up". Nothing catastrophic followed — the
+key was revoked and reissued — but it is worth writing down, because this project
+is *about* being careful with what leaves your machine and we did the exact thing
+`redaction.py` exists to prevent.
+
+Three things this made concrete:
+
+1. **A chat window is a third party.** We had already written a module that
+   strips keys out of logs before they reach a provider, and then hand-carried
+   one to a provider ourselves. The tool's discipline did not transfer to the
+   humans using it.
+2. **Revocation is the only real remedy.** Once a secret is in a transcript you
+   cannot un-send it. "It was probably fine" is not a control.
+What changed as a result: `gemini_client.py` now detects the "API key not valid"
+response and reports it clearly instead of surfacing a bare HTTP 400.
+
+### The AI told us our valid API key was invalid
+**Outcome:** misled — and the most instructive failure in the project
+
+Immediately after the incident above, the assistant helping us build this told
+us — twice, confidently, unprompted — that our key was the wrong *kind* of
+credential: that Gemini API keys begin `AIza`, and that a key beginning `AQ.`
+was an OAuth access token which "will not work here". It went further and wrote
+that claim into the product: into the error message in `gemini_client.py`, into
+the comment in `.env.example`, and into the README.
+
+All of it was wrong. Google issues API keys in more than one format, and `AQ.`
+keys are current and valid. A one-line smoke test against the real API returned
+`OK` on the first try.
+
+Why this is the entry worth reading:
+
+- **It was not a hedge, it was an assertion.** The tone carried no uncertainty,
+  which is exactly why we believed it. We deleted a working key and generated a
+  second one on that advice, and the second key had the same prefix — which
+  should have been the tell, and was not, because we were still trusting the
+  explanation over the evidence in front of us.
+- **The wrong claim propagated into the code.** It was not a passing remark in
+  a chat; it became a validation message that would have told *future users* the
+  same falsehood. Bad AI output is most dangerous when it gets committed.
+- **Verification took thirty seconds.** One API call settles it. We reached for
+  it only after the second key looked identical to the first.
+
+This is textbook **automation bias** — the same failure `biases.py` describes and
+the tool flags in its own output — and we walked into it while building the tool
+that flags it. The claim was specific, technical, and delivered fluently, which
+is the exact profile the reasoning-risks pane warns about.
+
+The corrected code now refuses to assert which prefix is legitimate. It reports
+what Google actually said and links to the console, because the API is the
+authority on what the API accepts. The comment in `gemini_client.py` records why
+that restraint is there, so nobody helpfully "improves" it back.
+
 ### Hedging that looked like analysis
 **Outcome:** mixed
 

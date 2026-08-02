@@ -13,8 +13,10 @@ pydantic>=2.9,<3.0
 python-dotenv>=1.0,<2.0
 
 # --- AI providers ------------------------------------------------------------
-# Both are optional at runtime: if a package or its key is missing, IncidentIQ
-# falls back to the offline heuristic engine instead of crashing.
+# All three are optional at runtime: if a package or its key is missing,
+# IncidentIQ falls back to the offline heuristic engine instead of crashing.
+# Each SDK is imported lazily, inside the client that needs it.
+google-genai>=1.0
 anthropic>=0.69
 openai>=1.59
 

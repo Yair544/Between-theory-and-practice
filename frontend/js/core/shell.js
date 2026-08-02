@@ -3,32 +3,79 @@
  * any single view: theme, sidebar, tab strip, status bar.
  */
 
-import { qs, qsa } from "./dom.js";
+import { el, qs, qsa, render } from "./dom.js";
 import { getState, setState, subscribe } from "./store.js";
 import { formatDuration, pct } from "./format.js";
+import { LANGUAGES, applyLanguage, detectLanguage, getLanguage, t } from "./i18n.js";
 
 const THEME_KEY = "iq.theme";
 
 /* ------------------------------------------------------------------ theme */
 
+/**
+ * Re-label the theme button. Module-level because the language switch has to
+ * call it too - the glyph is language-independent, the tooltip is not.
+ */
+function syncThemeButton() {
+  const button = qs("#btn-theme");
+  if (!button) return;
+  // The glyph shows the theme you would switch TO, not the current one.
+  const dark = document.documentElement.dataset.theme === "dark";
+  button.textContent = dark ? "☀" : "☽";
+  button.title = t(dark ? "app.theme.toLight" : "app.theme.toDark");
+  button.setAttribute("aria-label", button.title);
+}
+
 export function initTheme() {
   const button = qs("#btn-theme");
   if (!button) return;
-
-  // The glyph shows the theme you would switch TO, not the current one.
-  const sync = () => {
-    const dark = document.documentElement.dataset.theme === "dark";
-    button.textContent = dark ? "☀" : "☽";
-    button.title = dark ? "Switch to light theme" : "Switch to dark theme";
-  };
-  sync();
+  syncThemeButton();
 
   button.addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode */ }
-    sync();
+    syncThemeButton();
   });
+}
+
+/* --------------------------------------------------------------- language */
+
+/**
+ * Build the EN / עב toggle.
+ *
+ * Rendered from the LANGUAGES list rather than hard-coded in markup, so adding
+ * a third language is a dictionary entry and nothing else. Deliberately not a
+ * flag: a flag names a country, not a language, and on Windows the flag emoji
+ * degrades to two letter-boxes anyway.
+ */
+export function initLanguage() {
+  const host = qs("#langswitch");
+  if (!host) return;
+
+  const paint = () => {
+    const active = getLanguage();
+    render(host, LANGUAGES.map((lang) =>
+      el("button", {
+        class: "langswitch__btn",
+        type: "button",
+        lang: lang.code,
+        "aria-pressed": String(lang.code === active),
+        title: lang.name,
+        onClick: () => {
+          if (lang.code === getLanguage()) return;
+          applyLanguage(lang.code);
+          // Views are pure functions of state, so this one line redraws them.
+          setState({ language: lang.code });
+          paint();
+          syncThemeButton();
+        },
+      }, [lang.label])));
+  };
+
+  applyLanguage(detectLanguage());
+  setState({ language: getLanguage() });
+  paint();
 }
 
 /* ---------------------------------------------------------------- sidebar */
@@ -123,10 +170,10 @@ export function initStatusBar() {
 
     if (stateEl) {
       const labels = {
-        idle: "Ready — load a sample or paste evidence",
-        running: progress || "Analysing…",
-        done: "Analysis complete",
-        error: `Failed: ${error || "unknown error"}`,
+        idle: t("status.idle"),
+        running: progress || t("status.running"),
+        done: t("status.done"),
+        error: t("status.error", { error: error || "unknown" }),
       };
       stateEl.textContent = labels[status] || "";
     }
@@ -140,28 +187,28 @@ export function initStatusBar() {
 
     if (providerBadge) {
       if (!meta) {
-        providerBadge.textContent = "not run yet";
+        providerBadge.textContent = t("provider.notRun");
         providerBadge.className = "badge";
+        providerBadge.title = "";
       } else if (meta.offline) {
-        providerBadge.textContent = "offline engine";
+        providerBadge.textContent = t("provider.offline");
         providerBadge.className = "badge badge--medium";
-        providerBadge.title =
-          "No language model was used. Only the deterministic engine produced this analysis.";
+        providerBadge.title = t("provider.offline.title");
       } else {
         providerBadge.textContent = `${meta.provider} · ${meta.model}`;
         providerBadge.className = "badge badge--brand";
-        providerBadge.title = "Model-assisted analysis, verified against the input evidence";
+        providerBadge.title = t("provider.online.title");
       }
     }
 
     if (groundingEl) {
       const score = analysis?.verification?.grounding_score;
       groundingEl.textContent =
-        score === undefined || score === null ? "" : `grounding ${pct(score)}`;
-      groundingEl.title = "Share of model claims that cite evidence actually present in the input";
+        score === undefined || score === null ? "" : t("status.grounding", { value: pct(score) });
+      groundingEl.title = t("status.grounding.title");
     }
 
-    if (modelEl) modelEl.textContent = meta?.model ? `model ${meta.model}` : "";
+    if (modelEl) modelEl.textContent = meta?.model ? t("status.model", { model: meta.model }) : "";
     if (durationEl) {
       durationEl.textContent = meta?.duration_ms ? formatDuration(meta.duration_ms) : "";
     }
@@ -170,6 +217,8 @@ export function initStatusBar() {
 
 /** Wire up everything that is not a view. */
 export function initShell() {
+  // Language first: everything below reads translated strings.
+  initLanguage();
   initTheme();
   initSidebar();
   initTabs();

@@ -12,6 +12,7 @@
 import { el, section } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { formatTs } from "../core/format.js";
+import { t } from "../core/i18n.js";
 import { evidenceRefs, evidenceIdSet, badge, callout, notRunYet } from "./widgets.js";
 
 function timelineItem(item, knownIds) {
@@ -19,13 +20,13 @@ function timelineItem(item, knownIds) {
 
   return el("div", { class: `tl-item ${inferred ? "tl-item--inferred" : ""}` }, [
     el("div", { class: "tl-item__dot" }),
-    el("div", { class: "tl-item__time", text: formatTs(item.timestamp) || "time unknown" }),
+    el("div", { class: "tl-item__time", text: formatTs(item.timestamp) || t("timeline.unknownTime") }),
     el("div", { class: "tl-item__label", text: item.label }),
     item.detail && el("div", { class: "small muted", text: item.detail }),
     el("div", { class: "tl-item__foot" }, [
       inferred
-        ? badge("inferred", "assumption", "No input line states this directly — it was deduced.")
-        : badge("observed", "fact", "Taken straight from a timestamped input line."),
+        ? badge(t("timeline.inferred"), "assumption", t("timeline.inferred.tip"))
+        : badge(t("timeline.observed"), "fact", t("timeline.observed.tip")),
       evidenceRefs(item.evidence, knownIds),
     ]),
   ]);
@@ -34,16 +35,14 @@ function timelineItem(item, knownIds) {
 function renderTimeline(state) {
   const { analysis } = state;
   if (!analysis) {
-    return notRunYet("The timeline is built from timestamps found in the logs and alerts.");
+    return notRunYet(t("timeline.empty"));
   }
 
   const items = analysis.timeline || [];
   const knownIds = evidenceIdSet(analysis);
 
   if (!items.length) {
-    return callout("warn", "!", "No timeline could be built",
-      "No parseable timestamps were found. Include raw log lines with their " +
-      "original time prefixes rather than a summary.");
+    return callout("warn", "!", t("timeline.none.title"), t("timeline.none.body"));
   }
 
   const inferredCount = items.filter((item) => item.inferred).length;
@@ -51,13 +50,11 @@ function renderTimeline(state) {
   return el("div", { class: "stack" }, [
     inferredCount
       ? callout("warn", "~",
-          `${inferredCount} of ${items.length} events are inferred, not observed`,
-          "Dashed markers were deduced rather than read from a log line. Treat them " +
-          "as assumptions until a source is found.")
-      : callout("ok", "✓", "Every event is backed by a timestamped input line",
-          "Nothing in this timeline was invented to fill a gap."),
+          t("timeline.inferred.title", { count: inferredCount, total: items.length }),
+          t("timeline.inferred.body"))
+      : callout("ok", "✓", t("timeline.allObserved.title"), t("timeline.allObserved.body")),
 
-    section("Timeline", "earliest first", el("div", { class: "card" }, [
+    section(t("timeline.section"), t("timeline.section.hint"), el("div", { class: "card" }, [
       el("div", { class: "timeline" }, items.map((item) => timelineItem(item, knownIds))),
     ])),
   ]);

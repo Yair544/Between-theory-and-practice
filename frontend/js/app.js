@@ -11,11 +11,11 @@
  */
 
 import { initShell } from "./core/shell.js";
-import { subscribe } from "./core/store.js";
+import { getState, subscribe } from "./core/store.js";
 import { render, emptyState, qs } from "./core/dom.js";
 import { getView } from "./core/registry.js";
-import { mountInputPanel } from "./components/inputPanel.js";
-import { mountSamplePicker } from "./components/samplePicker.js";
+import { mountInputPanel, syncInputPanel } from "./components/inputPanel.js";
+import { mountSamplePicker, renderSamples } from "./components/samplePicker.js";
 import { mountRunPanel } from "./components/runPanel.js";
 
 // Each view module registers itself with registerView() on import.
@@ -58,6 +58,19 @@ function boot() {
   mountInputPanel();
   mountRunPanel();
   mountSamplePicker();
+
+  // ...but a language switch does have to rebuild it, because the labels and
+  // placeholders live in the markup. The typed text is preserved by reading it
+  // back out of the store, which is the only reason the sidebar can be
+  // rebuilt safely at all.
+  let lastLanguage = getState().language;
+  subscribe((state) => {
+    if (state.language === lastLanguage) return;
+    lastLanguage = state.language;
+    mountInputPanel();
+    syncInputPanel();
+    renderSamples();
+  });
 
   // Workspace: fully re-rendered from state on every change.
   subscribe(renderPanes);

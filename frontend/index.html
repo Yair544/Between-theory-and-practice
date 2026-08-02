@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" dir="ltr" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,20 +13,28 @@
   <link rel="stylesheet" href="./css/layout.css">
   <link rel="stylesheet" href="./css/components.css">
 
-  <!-- Applied before first paint so the page never flashes the wrong theme. -->
+  <!-- Theme and direction are applied before first paint, so the page never
+       flashes the wrong colours or flips layout after load. -->
   <script>
     (function () {
-      var saved = null;
-      try { saved = localStorage.getItem("iq.theme"); } catch (e) { /* private mode */ }
+      var read = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
+      var theme = read("iq.theme");
       var prefersDark = window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+      document.documentElement.dataset.theme = theme || (prefersDark ? "dark" : "light");
+
+      var lang = read("iq.lang");
+      if (!lang) {
+        lang = (navigator.language || "en").toLowerCase().indexOf("he") === 0 ? "he" : "en";
+      }
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
     })();
   </script>
 </head>
 
 <body>
-<a class="skip-link" href="#panes">Skip to analysis results</a>
+<a class="skip-link" href="#panes" data-i18n="app.skipLink">Skip to analysis results</a>
 
 <div class="app">
 
@@ -36,24 +44,25 @@
       <div class="brand__mark" aria-hidden="true">IQ</div>
       <div>
         <div class="brand__name">IncidentIQ</div>
-        <div class="brand__tagline">Evidence-first incident analysis</div>
+        <div class="brand__tagline" data-i18n="app.tagline">Evidence-first incident analysis</div>
       </div>
     </div>
 
     <div class="app-header__spacer"></div>
 
     <div class="app-header__actions">
-      <span class="badge" id="provider-badge" title="Which engine produced the current analysis">
-        not run yet
-      </span>
-      <button class="btn btn--ghost btn--sm" id="btn-toggle-sidebar"
-              aria-pressed="false" title="Show or hide the input panel">
+      <span class="badge" id="provider-badge">not run yet</span>
+
+      <!-- Language switch. Rendered by shell.js so the available languages
+           come from i18n.js rather than being duplicated in markup. -->
+      <div class="langswitch" id="langswitch" role="group" data-i18n-aria="app.lang.title"></div>
+
+      <button class="btn btn--ghost btn--sm" id="btn-toggle-sidebar" aria-pressed="false"
+              data-i18n="app.inputPanel" data-i18n-title="app.inputPanel.title">
         Input panel
       </button>
       <button class="btn btn--icon btn--ghost" id="btn-theme"
-              title="Switch between light and dark" aria-label="Toggle colour theme">
-        &#9789;
-      </button>
+              data-i18n-aria="app.theme.toDark">&#9789;</button>
     </div>
   </header>
 
@@ -61,24 +70,27 @@
   <div class="app-body" id="app-body" data-sidebar="expanded">
 
     <!-- ---------- input sidebar ---------- -->
-    <aside class="sidebar" id="sidebar" aria-label="Incident input">
+    <aside class="sidebar" id="sidebar" data-i18n-aria="app.sidebar.aria">
       <div class="sidebar__section">
         <span class="sidebar__label">
-          <span class="sidebar__step" aria-hidden="true">1</span> Load an incident
+          <span class="sidebar__step" aria-hidden="true">1</span>
+          <span data-i18n="step.1">Load an incident</span>
         </span>
         <div id="mount-samples" class="stack-2"></div>
       </div>
 
       <div class="sidebar__section">
         <span class="sidebar__label">
-          <span class="sidebar__step" aria-hidden="true">2</span> Evidence
+          <span class="sidebar__step" aria-hidden="true">2</span>
+          <span data-i18n="step.2">Evidence</span>
         </span>
         <div id="mount-input"></div>
       </div>
 
       <div class="sidebar__section">
         <span class="sidebar__label">
-          <span class="sidebar__step" aria-hidden="true">3</span> Analyse
+          <span class="sidebar__step" aria-hidden="true">3</span>
+          <span data-i18n="step.3">Analyse</span>
         </span>
         <div id="mount-run"></div>
       </div>
@@ -86,34 +98,39 @@
 
     <!-- ---------- results workspace ---------- -->
     <main class="workspace">
-      <nav class="tabstrip" role="tablist" id="tabstrip" aria-label="Analysis sections">
+      <nav class="tabstrip" role="tablist" id="tabstrip" data-i18n-aria="tabs.aria">
         <button class="tab" role="tab" id="tabbtn-summary" data-tab="summary"
                 aria-selected="true" aria-controls="panel-summary">
-          Summary
+          <span data-i18n="tab.summary">Summary</span>
         </button>
         <button class="tab" role="tab" id="tabbtn-evidence" data-tab="evidence"
                 aria-selected="false" aria-controls="panel-evidence">
-          Evidence <span class="tab__count" data-count="evidence"></span>
+          <span data-i18n="tab.evidence">Evidence</span>
+          <span class="tab__count" data-count="evidence"></span>
         </button>
         <button class="tab" role="tab" id="tabbtn-timeline" data-tab="timeline"
                 aria-selected="false" aria-controls="panel-timeline">
-          Timeline <span class="tab__count" data-count="timeline"></span>
+          <span data-i18n="tab.timeline">Timeline</span>
+          <span class="tab__count" data-count="timeline"></span>
         </button>
         <button class="tab" role="tab" id="tabbtn-hypotheses" data-tab="hypotheses"
                 aria-selected="false" aria-controls="panel-hypotheses">
-          Hypotheses <span class="tab__count" data-count="hypotheses"></span>
+          <span data-i18n="tab.hypotheses">Hypotheses</span>
+          <span class="tab__count" data-count="hypotheses"></span>
         </button>
         <button class="tab" role="tab" id="tabbtn-risks" data-tab="risks"
                 aria-selected="false" aria-controls="panel-risks">
-          Reasoning risks <span class="tab__count" data-count="risks"></span>
+          <span data-i18n="tab.risks">Reasoning risks</span>
+          <span class="tab__count" data-count="risks"></span>
         </button>
         <button class="tab" role="tab" id="tabbtn-actions" data-tab="actions"
                 aria-selected="false" aria-controls="panel-actions">
-          Next actions <span class="tab__count" data-count="actions"></span>
+          <span data-i18n="tab.actions">Next actions</span>
+          <span class="tab__count" data-count="actions"></span>
         </button>
         <button class="tab" role="tab" id="tabbtn-report" data-tab="report"
                 aria-selected="false" aria-controls="panel-report">
-          Postmortem
+          <span data-i18n="tab.report">Postmortem</span>
         </button>
       </nav>
 

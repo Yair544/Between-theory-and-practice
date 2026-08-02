@@ -10,55 +10,30 @@
 import { el, render, qs } from "../core/dom.js";
 import { getState, setState } from "../core/store.js";
 import { formatCount } from "../core/format.js";
+import { t } from "../core/i18n.js";
 
 /** Field definitions: order here is the order shown in the sidebar. */
+// `prose` fields follow the interface direction; the rest are machine text
+// (logs, traces, alerts) and stay LTR even when the UI is Hebrew.
 const FIELDS = [
-  {
-    key: "description",
-    label: "Incident description",
-    prose: true,
-    placeholder: "What is failing, since when, and who noticed?",
-    help: "One or two sentences. This is context, not evidence.",
-  },
-  {
-    key: "logs",
-    label: "Application logs",
-    placeholder: "2026-05-02T10:14:03Z ERROR checkout ...",
-    help: "Paste raw lines. Timestamps are used to build the timeline.",
-  },
-  {
-    key: "errors",
-    label: "Error traces",
-    placeholder: "Traceback (most recent call last): ...",
-  },
-  {
-    key: "alerts",
-    label: "Monitoring alerts",
-    placeholder: "[FIRING] CheckoutErrorRate > 5% for 10m",
-  },
-  {
-    key: "deployNotes",
-    label: "Recent deployment notes",
-    prose: true,
-    placeholder: "v2.4.1 - switched payment client to connection pooling",
-    help: "A deploy before an incident is a lead, not a cause.",
-  },
-  {
-    key: "userReports",
-    label: "User complaints / support tickets",
-    prose: true,
-    placeholder: "\"Card declined at checkout\" x14 since 10:20",
-  },
+  { key: "description", prose: true, help: true },
+  { key: "logs", help: true },
+  { key: "errors" },
+  { key: "alerts" },
+  { key: "deployNotes", prose: true, help: true },
+  { key: "userReports", prose: true },
 ];
 
 /** File extensions we are willing to read into a field. */
 const ACCEPT = ".txt,.log,.json,.csv,.md,.out,.err";
 
 function fieldBlock(field, value) {
+  const label = t(`field.${field.key}.label`);
   const textarea = el("textarea", {
     class: field.prose ? "textarea textarea--prose" : "textarea",
     id: `input-${field.key}`,
-    placeholder: field.placeholder || "",
+    placeholder: t(`field.${field.key}.placeholder`),
+    dir: field.prose ? null : "ltr",
     spellcheck: "false",
     onInput: (event) => {
       setState({ input: { [field.key]: event.target.value } });
@@ -86,26 +61,26 @@ function fieldBlock(field, value) {
 
   return el("div", { class: "field" }, [
     el("label", { class: "field__label", for: `input-${field.key}` }, [
-      el("span", { text: field.label }),
+      el("span", { text: label }),
       el("span", { class: "row" }, [
         counter,
         el("button", {
           class: "btn btn--ghost btn--sm",
           type: "button",
-          title: `Load a file into "${field.label}"`,
+          title: t("input.file.title", { label }),
           onClick: () => fileInput.click(),
-        }, ["file"]),
+        }, [t("input.file")]),
       ]),
     ]),
     textarea,
     fileInput,
-    field.help && el("div", { class: "field__help", text: field.help }),
+    field.help && el("div", { class: "field__help", text: t(`field.${field.key}.help`) }),
   ]);
 }
 
 function charLabel(value) {
   const n = (value || "").length;
-  return n ? `${formatCount(n)} chars` : "";
+  return n ? t("input.chars", { count: formatCount(n) }) : "";
 }
 
 /** Build the form and mount it into the sidebar. */
@@ -117,12 +92,12 @@ export function mountInputPanel() {
 
   const titleField = el("div", { class: "field" }, [
     el("label", { class: "field__label", for: "input-title" }, [
-      el("span", { text: "Incident title" }),
+      el("span", { text: t("input.title.label") }),
     ]),
     el("input", {
       class: "input",
       id: "input-title",
-      placeholder: "Checkout failures after v2.4.1",
+      placeholder: t("input.title.placeholder"),
       value: state.input.title || "",
       onInput: (e) => setState({ input: { title: e.target.value } }),
     }),

@@ -90,6 +90,26 @@ hard to argue with - that is a real finding, not a failure.
 # ------------------------------------------------------------ user prompts --
 
 
+# Appended to the user turn when the interface is not English. Kept separate
+# from ANALYSIS_SYSTEM so the seven rules stay byte-identical across languages -
+# a rule that is only enforced in one language is not a rule.
+LANGUAGE_INSTRUCTION = {
+    "he": """\
+# Language
+Write every piece of prose you produce in Hebrew: the summary, the audience \
+rewrites, hypothesis titles and explanations, assumptions, recommended tests, \
+bias findings, actions and open questions.
+
+Do NOT translate machine text. Evidence ids stay as they are ([E1], [E12]). \
+Quoted log lines, error messages, file paths, service names, HTTP methods and \
+identifiers stay in their original form - a log line quoted back in Hebrew is \
+no longer a quotation and cannot be checked against the input. The enum values \
+in the schema (severity, priority, owner_role, bias ids) stay in English \
+because they are keys, not prose.
+""",
+}
+
+
 def build_analysis_prompt(
     *,
     title: str,
@@ -97,6 +117,7 @@ def build_analysis_prompt(
     observed_timeline: str,
     hypothesis_count: int,
     coverage_note: str,
+    language: str = "en",
 ) -> str:
     """The user turn for the main analysis pass."""
     return f"""\
@@ -131,7 +152,7 @@ observed events there would misrepresent them as inferences.
 the claims do not. The manager version must not add certainty the engineer \
 version does not have.
 - `reasoning_risks[].bias` must be one of the catalogue ids listed above.
-"""
+{LANGUAGE_INSTRUCTION.get(language, "")}"""
 
 
 def build_challenge_prompt(
@@ -141,6 +162,7 @@ def build_challenge_prompt(
     supporting: list[str],
     contradicting: list[str],
     evidence_block: str,
+    language: str = "en",
 ) -> str:
     """The user turn for the devil's-advocate pass."""
     return f"""\
@@ -158,7 +180,7 @@ Claimed contradicting evidence: {", ".join(contradicting) or "none"}
 # What to produce
 A single JSON object with one field, "rebuttal": a paragraph of at most 120 words \
 arguing against the hypothesis, citing evidence IDs.
-"""
+{LANGUAGE_INSTRUCTION.get(language, "")}"""
 
 
 # ---------------------------------------------------------------- schemas ---

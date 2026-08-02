@@ -9,6 +9,7 @@
 import { el, section } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { toast } from "../core/toast.js";
+import { t } from "../core/i18n.js";
 import { callout, notRunYet } from "./widgets.js";
 
 function download(filename, text) {
@@ -24,48 +25,45 @@ function download(filename, text) {
 async function copy(text) {
   try {
     await navigator.clipboard.writeText(text);
-    toast("Postmortem copied to the clipboard", { type: "ok" });
+    toast(t("report.copied"), { type: "ok" });
   } catch {
-    toast("The browser blocked clipboard access — use Download instead.", { type: "warn" });
+    toast(t("report.copyFailed"), { type: "warn" });
   }
 }
 
 function renderReport(state) {
   const { analysis } = state;
   if (!analysis) {
-    return notRunYet("A draft postmortem is generated from the analysis and can be exported as Markdown.");
+    return notRunYet(t("report.empty"));
   }
 
   const markdown = analysis.report_markdown;
   if (!markdown) {
-    return callout("warn", "!", "No postmortem generated",
-      "The analysis completed but produced no report body.");
+    return callout("warn", "!", t("report.none.title"), t("report.none.body"));
   }
 
   const slug = (analysis.title || "incident")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
 
   return el("div", { class: "stack" }, [
-    callout("warn", "✎", "This is a draft, not a published postmortem",
-      "It is assembled from hypotheses that have not been tested yet. Confirm the " +
-      "root cause with a real test, delete the hypotheses that fail, and put your " +
-      "own name on it before circulating."),
+    callout("warn", "✎", t("report.draft.title"), t("report.draft.body")),
 
-    section("Draft postmortem", "Markdown, ready to paste into a wiki or a PR",
+    section(t("report.section"), t("report.section.hint"),
       el("div", { class: "stack" }, [
         el("div", { class: "row" }, [
-          el("button", { class: "btn btn--primary", onClick: () => copy(markdown) }, ["Copy Markdown"]),
+          el("button", { class: "btn btn--primary", onClick: () => copy(markdown) }, [t("report.copy")]),
           el("button", {
             class: "btn",
             onClick: () => {
               download(`postmortem-${slug || "incident"}.md`, markdown);
-              toast("Saved to your downloads folder", { type: "ok" });
+              toast(t("report.downloaded"), { type: "ok" });
             },
-          }, ["Download .md"]),
+          }, [t("report.download")]),
           el("span", { class: "grow" }),
-          el("span", { class: "xsmall faint", text: `${markdown.length.toLocaleString("en-US")} characters` }),
+          el("span", { class: "xsmall faint",
+            text: t("report.chars", { count: markdown.length.toLocaleString("en-US") }) }),
         ]),
-        el("pre", { class: "code-block" }, [markdown]),
+        el("pre", { class: "code-block", dir: "ltr" }, [markdown]),
       ])),
   ]);
 }

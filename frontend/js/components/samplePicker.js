@@ -9,13 +9,14 @@ import { el, render, qs, emptyState } from "../core/dom.js";
 import { setState, getState } from "../core/store.js";
 import { api } from "../core/api.js";
 import { toast } from "../core/toast.js";
+import { t } from "../core/i18n.js";
 import { syncInputPanel } from "./inputPanel.js";
 
 function sampleButton(sample) {
   const active = getState().activeSampleId === sample.id;
   return el("button", {
     class: `btn btn--block ${active ? "btn--primary" : ""}`,
-    style: { justifyContent: "flex-start", textAlign: "left" },
+    style: { justifyContent: "flex-start", textAlign: "start" },
     title: sample.description || sample.title,
     onClick: () => loadSample(sample.id),
   }, [
@@ -46,7 +47,7 @@ async function loadSample(id) {
     });
     syncInputPanel();
     renderSamples();
-    toast(`Loaded "${sample.title}"`, { type: "ok" });
+    toast(t("samples.loaded", { title: sample.title }), { type: "ok" });
   } catch (error) {
     toast(error.message, { type: "error" });
   }
@@ -59,7 +60,7 @@ export function renderSamples() {
   const samples = getState().samples;
   if (!samples.length) {
     render(host, el("div", { class: "xsmall faint" }, [
-      "No example incidents found in data/samples/.",
+      t("samples.none"),
     ]));
     return;
   }
@@ -73,7 +74,7 @@ export async function mountSamplePicker() {
 
   render(host, el("div", { class: "row xsmall faint" }, [
     el("span", { class: "spinner" }),
-    "loading examples…",
+    t("samples.loading"),
   ]));
 
   try {

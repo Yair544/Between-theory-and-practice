@@ -26,6 +26,10 @@ class LLMResult:
     duration_ms: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
+    # Reasoning tokens, where the provider reports them separately. On Gemini
+    # 2.5 these are billed against the same output budget as the answer, so a
+    # run that thinks hard can starve its own response - see gemini_client.py.
+    thinking_tokens: int = 0
     warnings: list[str] = field(default_factory=list)
 
 

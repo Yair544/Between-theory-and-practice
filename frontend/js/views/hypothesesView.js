@@ -13,6 +13,7 @@
 import { el, section } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { confidenceBand } from "../core/format.js";
+import { t } from "../core/i18n.js";
 import {
   evidenceRefs, evidenceIdSet, confidenceMeter, badge, callout, notRunYet,
 } from "./widgets.js";
@@ -20,12 +21,12 @@ import {
 function evidenceColumn(kind, ids, knownIds) {
   const isFor = kind === "for";
   return el("div", { class: `evidence-col evidence-col--${kind}` }, [
-    el("div", { class: "evidence-col__title", text: isFor ? "Evidence for" : "Evidence against" }),
+    el("div", { class: "evidence-col__title", text: t(isFor ? "hyp.for" : "hyp.against") }),
     ids?.length
       ? evidenceRefs(ids, knownIds)
       : el("div", {
           class: "xsmall faint",
-          text: isFor ? "none found" : "none found — did anyone look?",
+          text: t(isFor ? "hyp.noneFound" : "hyp.noneLooked"),
         }),
   ]);
 }
@@ -53,17 +54,15 @@ function hypothesisCard(hypothesis, index, knownIds) {
     // A one-sided hypothesis is the classic shape of confirmation bias.
     support.length && !against.length
       ? el("div", { style: { marginTop: "var(--sp-3)" } }, [
-          callout("warn", "⚖", "Only supporting evidence was found",
-            "Before trusting this, go looking for something that would prove it wrong. " +
-            "A hypothesis nothing can contradict is not a strong hypothesis — it is an untested one."),
+          callout("warn", "⚖", t("hyp.oneSided.title"), t("hyp.oneSided.body")),
         ])
       : null,
 
     hypothesis.recommended_test
       ? el("div", { style: { marginTop: "var(--sp-4)" } }, [
-          el("div", { class: "evidence-col", style: { borderLeft: "3px solid var(--c-brand)" } }, [
+          el("div", { class: "evidence-col", style: { borderInlineStart: "3px solid var(--c-brand)" } }, [
             el("div", { class: "evidence-col__title", style: { color: "var(--c-brand)" },
-                        text: "Test that would settle it" }),
+                        text: t("hyp.test") }),
             el("div", { class: "small", text: hypothesis.recommended_test }),
           ]),
         ])
@@ -71,7 +70,7 @@ function hypothesisCard(hypothesis, index, knownIds) {
 
     hypothesis.rebuttal
       ? el("div", { style: { marginTop: "var(--sp-3)" } }, [
-          callout("info", "↺", "Counter-argument (second pass)", hypothesis.rebuttal),
+          callout("info", "↺", t("hyp.rebuttal"), hypothesis.rebuttal),
         ])
       : null,
   ]);
@@ -80,7 +79,7 @@ function hypothesisCard(hypothesis, index, knownIds) {
 function renderHypotheses(state) {
   const { analysis } = state;
   if (!analysis) {
-    return notRunYet("Root-cause hypotheses appear here, ranked by how well the evidence supports them.");
+    return notRunYet(t("hyp.empty"));
   }
 
   const hypotheses = [...(analysis.hypotheses || [])]
@@ -88,9 +87,7 @@ function renderHypotheses(state) {
   const knownIds = evidenceIdSet(analysis);
 
   if (!hypotheses.length) {
-    return callout("warn", "!", "No hypotheses generated",
-      "The evidence may be too thin to support any explanation. Add logs from " +
-      "around the failure window and run again.");
+    return callout("warn", "!", t("hyp.none.title"), t("hyp.none.body"));
   }
 
   const top = hypotheses[0];
@@ -99,20 +96,16 @@ function renderHypotheses(state) {
     : 1;
 
   return el("div", { class: "stack" }, [
-    callout("info", "≡", `${hypotheses.length} competing explanations`,
-      "IncidentIQ ranks these; it does not choose between them. The ranking " +
-      "reflects how much of the input each explanation accounts for, not how likely " +
-      "it is to be true."),
+    callout("info", "≡", t("hyp.count.title", { count: hypotheses.length }),
+      t("hyp.count.body")),
 
     // A near-tie is useful information: it means the evidence does not
     // discriminate between the top two, so picking either one is a coin flip.
     gap < 0.1 && hypotheses.length > 1
-      ? callout("warn", "≈", "The top two hypotheses are effectively tied",
-          "The current evidence cannot tell them apart. Run the test on the leading " +
-          "hypothesis before spending effort on a fix.")
+      ? callout("warn", "≈", t("hyp.tie.title"), t("hyp.tie.body"))
       : null,
 
-    section("Ranked hypotheses", "highest evidential support first",
+    section(t("hyp.section"), t("hyp.section.hint"),
       el("div", { class: "stack" },
         hypotheses.map((hypothesis, index) => hypothesisCard(hypothesis, index, knownIds)))),
   ]);

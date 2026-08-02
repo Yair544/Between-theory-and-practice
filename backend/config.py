@@ -39,6 +39,9 @@ def _str(name: str, default: str = "") -> str:
     return (os.getenv(name) or default).strip()
 
 
+PROVIDERS = ("anthropic", "gemini", "openai", "offline")
+
+
 @dataclass(frozen=True)
 class Settings:
     """Immutable snapshot of the environment at process start."""
@@ -46,6 +49,8 @@ class Settings:
     provider: str
     anthropic_api_key: str
     anthropic_model: str
+    gemini_api_key: str
+    gemini_model: str
     openai_api_key: str
     openai_model: str
 
@@ -59,6 +64,14 @@ class Settings:
     auto_open_browser: bool
 
     @property
+    def _keys(self) -> dict[str, str]:
+        return {
+            "anthropic": self.anthropic_api_key,
+            "gemini": self.gemini_api_key,
+            "openai": self.openai_api_key,
+        }
+
+    @property
     def offline(self) -> bool:
         """
         True when no language model will be called.
@@ -70,19 +83,16 @@ class Settings:
         """
         if self.provider == "offline":
             return True
-        if self.provider == "anthropic":
-            return not self.anthropic_api_key
-        if self.provider == "openai":
-            return not self.openai_api_key
-        return True
+        return not self._keys.get(self.provider)
 
     @property
     def active_model(self) -> str:
-        if self.provider == "anthropic":
-            return self.anthropic_model
-        if self.provider == "openai":
-            return self.openai_model
-        return "deterministic-engine"
+        models = {
+            "anthropic": self.anthropic_model,
+            "gemini": self.gemini_model,
+            "openai": self.openai_model,
+        }
+        return models.get(self.provider, "deterministic-engine")
 
     def describe(self) -> dict:
         """Non-secret view of the configuration, safe to send to the browser."""
@@ -90,7 +100,9 @@ class Settings:
             "provider": self.provider,
             "model": self.active_model,
             "offline": self.offline,
+            # Booleans only. The key itself must never cross this boundary.
             "has_anthropic_key": bool(self.anthropic_api_key),
+            "has_gemini_key": bool(self.gemini_api_key),
             "has_openai_key": bool(self.openai_api_key),
             "redact_pii": self.redact_pii,
             "hypothesis_count": self.hypothesis_count,
@@ -99,14 +111,16 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    provider = _str("LLM_PROVIDER", "anthropic").lower()
-    if provider not in {"anthropic", "openai", "offline"}:
-        provider = "anthropic"
+    provider = _str("LLM_PROVIDER", "gemini").lower()
+    if provider not in PROVIDERS:
+        provider = "gemini"
 
     return Settings(
         provider=provider,
         anthropic_api_key=_str("ANTHROPIC_API_KEY"),
         anthropic_model=_str("ANTHROPIC_MODEL", "claude-opus-4-8"),
+        gemini_api_key=_str("GEMINI_API_KEY") or _str("GOOGLE_API_KEY"),
+        gemini_model=_str("GEMINI_MODEL", "gemini-2.5-flash"),
         openai_api_key=_str("OPENAI_API_KEY"),
         openai_model=_str("OPENAI_MODEL", "gpt-4o"),
         max_output_tokens=_int("MAX_OUTPUT_TOKENS", 16000),

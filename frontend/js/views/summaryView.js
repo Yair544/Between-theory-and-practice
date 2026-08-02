@@ -8,6 +8,7 @@
 import { el, section } from "../core/dom.js";
 import { registerView } from "../core/registry.js";
 import { pct } from "../core/format.js";
+import { t } from "../core/i18n.js";
 import {
   evidenceRefs, evidenceIdSet, badge, callout, notRunYet,
 } from "./widgets.js";
@@ -21,28 +22,25 @@ function verificationBanner(analysis) {
   const score = v.grounding_score;
 
   if (analysis.meta?.offline) {
-    return callout("warn", "⚙", "Offline mode",
-      "No language model was consulted. Everything below was produced by the " +
-      "deterministic engine: pattern-matched evidence, a timestamp-ordered timeline, " +
-      "and rule-based hypotheses. Add an API key in .env for the model-assisted analysis.");
+    return callout("warn", "⚙", t("summary.offline.title"), t("summary.offline.body"));
   }
 
   if (!unsupported.length && !invalid.length) {
-    return callout("ok", "✓", `Every claim traced to evidence (grounding ${pct(score)})`,
-      "Each statement below cites at least one input item that exists. " +
-      "Traceable is not the same as correct — the cited evidence may itself be misleading.");
+    return callout("ok", "✓",
+      t("summary.verified.title", { value: pct(score) }), t("summary.verified.body"));
   }
 
   return callout("danger", "!",
-    `${unsupported.length + invalid.length} claim(s) failed verification (grounding ${pct(score)})`,
+    t("summary.failedChecks.title",
+      { count: unsupported.length + invalid.length, value: pct(score) }),
     el("div", { class: "stack-2" }, [
       invalid.length ? el("div", {}, [
-        el("strong", { text: "Invented citations: " }),
-        `the model cited ${invalid.map((c) => c.citation).join(", ")}, which do not exist in the input.`,
+        el("strong", { text: t("summary.invented") }),
+        t("summary.invented.body", { list: invalid.map((c) => c.citation).join(", ") }),
       ]) : null,
       unsupported.length ? el("div", {}, [
-        el("strong", { text: "Unsupported statements: " }),
-        `${unsupported.length} claim(s) cite no evidence at all.`,
+        el("strong", { text: t("summary.unsupported") }),
+        t("summary.unsupported.body", { count: unsupported.length }),
       ]) : null,
       el("ul", { style: { marginTop: "var(--sp-2)", marginBottom: 0 } },
         unsupported.slice(0, 5).map((item) =>
@@ -59,11 +57,11 @@ function headline(analysis) {
   const ids = evidenceIdSet(analysis);
   const summary = analysis.summary || {};
 
-  return section("What happened", "professional summary, no unsupported claims",
+  return section(t("summary.what"), t("summary.what.hint"),
     el("div", { class: "card" }, [
-      el("div", { class: "prose", text: summary.text || "No summary produced." }),
+      el("div", { class: "prose", text: summary.text || t("summary.noSummary") }),
       el("div", { class: "row", style: { marginTop: "var(--sp-3)" } }, [
-        el("span", { class: "xsmall faint", text: "based on" }),
+        el("span", { class: "xsmall faint", text: t("summary.basedOn") }),
         evidenceRefs(summary.citations, ids),
       ]),
     ]));
@@ -78,8 +76,8 @@ function factsAndAssumptions(analysis) {
 
   const factCard = el("div", { class: "card" }, [
     el("div", { class: "card__head" }, [
-      badge("facts", "fact"),
-      el("span", { class: "card__title", text: "Directly supported by the input" }),
+      badge(t("summary.facts"), "fact"),
+      el("span", { class: "card__title", text: t("summary.facts.title") }),
       el("span", { class: "xsmall faint", text: `${facts.length}` }),
     ]),
     facts.length
@@ -88,30 +86,30 @@ function factsAndAssumptions(analysis) {
             el("span", { text: fact.statement }),
             el("span", { style: { marginLeft: "var(--sp-2)" } }, [evidenceRefs(fact.evidence, ids)]),
           ])))
-      : el("div", { class: "muted small", text: "No statement in the analysis was fully grounded." }),
+      : el("div", { class: "muted small", text: t("summary.facts.none") }),
   ]);
 
   const assumptionCard = el("div", { class: "card" }, [
     el("div", { class: "card__head" }, [
-      badge("assumptions", "assumption"),
-      el("span", { class: "card__title", text: "Believed but not proven" }),
+      badge(t("summary.assumptions"), "assumption"),
+      el("span", { class: "card__title", text: t("summary.assumptions.title") }),
       el("span", { class: "xsmall faint", text: `${assumptions.length}` }),
     ]),
     assumptions.length
       ? el("div", { class: "stack" },
           assumptions.map((item) => el("div", {}, [
             el("div", { text: item.statement }),
-            item.why && el("div", { class: "xsmall faint", text: `Why we think so: ${item.why}` }),
+            item.why && el("div", { class: "xsmall faint",
+              text: t("summary.assumption.why", { why: item.why }) }),
             item.how_to_verify && el("div", { class: "xsmall" }, [
-              el("strong", { text: "To confirm: " }),
+              el("strong", { text: t("summary.assumption.verify") }),
               item.how_to_verify,
             ]),
           ])))
-      : el("div", { class: "muted small", text: "No assumptions were flagged." }),
+      : el("div", { class: "muted small", text: t("summary.assumptions.none") }),
   ]);
 
-  return section("Facts vs assumptions",
-    "the two are kept apart on purpose — mixing them is how investigations go wrong",
+  return section(t("summary.factsVsAssumptions"), t("summary.factsVsAssumptions.hint"),
     el("div", { class: "stack" }, [factCard, assumptionCard]));
 }
 
@@ -122,13 +120,12 @@ function audienceView(analysis) {
   if (!audiences) return null;
 
   const labels = {
-    engineer: "For the on-call engineer",
-    manager: "For the engineering manager",
-    support: "For the support team",
+    engineer: t("summary.audience.engineer"),
+    manager: t("summary.audience.manager"),
+    support: t("summary.audience.support"),
   };
 
-  return section("Same facts, three audiences",
-    "the wording changes, the claims do not",
+  return section(t("summary.audiences"), t("summary.audiences.hint"),
     el("div", { class: "stack" },
       Object.entries(labels)
         .filter(([key]) => audiences[key])
@@ -144,7 +141,7 @@ function openQuestions(analysis) {
   const questions = analysis.open_questions || [];
   if (!questions.length) return null;
 
-  return section("Still unknown", "questions that must be answered before closing this incident",
+  return section(t("summary.openQuestions"), t("summary.openQuestions.hint"),
     el("div", { class: "card" }, [
       el("ul", { class: "stack-2", style: { paddingLeft: "var(--sp-5)", marginBottom: 0 } },
         questions.map((q) => el("li", {}, [
@@ -160,13 +157,10 @@ function renderSummary(state) {
   const { analysis, status, error } = state;
 
   if (status === "error") {
-    return callout("danger", "✕", "Analysis failed", error || "Unknown error.");
+    return callout("danger", "✕", t("summary.failed"), error || "");
   }
   if (!analysis) {
-    return notRunYet(
-      "Load one of the example incidents from the sidebar, or paste your own logs, " +
-      "then press Analyse incident."
-    );
+    return notRunYet(t("summary.empty"));
   }
 
   return el("div", { class: "stack" }, [
