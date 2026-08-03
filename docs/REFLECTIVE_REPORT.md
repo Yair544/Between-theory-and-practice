@@ -337,8 +337,7 @@ GitHub history is the record of this.
 | Test suite (73 tests) | Bias catalogue and prompt library |
 | README, prompt docs, AI usage log, this report | Grounding verifier and bias detectors |
 | Visual polish and accessibility pass | Analysis pipeline and FastAPI service |
-| Hebrew interface, RTL, Hebrew model output | Reasoning views (hypotheses, risks, actions, postmortem) |
-| Branch merge and structural conflict resolution | |
+| Hebrew interface, RTL, Hebrew model output, branch merge | Reasoning views (hypotheses, risks, actions, postmortem) |
 
 **How we worked.** We split along the natural seam in the architecture: Yair owned
 everything from the API boundary inward, Ofek owned the frontend shell and the

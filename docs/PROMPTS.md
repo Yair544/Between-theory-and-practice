@@ -104,21 +104,15 @@ Gemini is the default provider, so the cheapest second opinion to add is an
 Anthropic or OpenAI key.
 
 **We could not run this one.** Only `GEMINI_API_KEY` was configured, so
-`compare_models.py` had a single provider and nothing to compare it against. The
-table stays empty rather than being filled from a run that did not happen.
-
-| Sample | Model A leading hypothesis | Model B leading hypothesis | Agree? | Grounding A / B |
-|---|---|---|---|---|
-| checkout-v241 | *(not run — one provider key)* | | | |
-| registration-peak | *(not run — one provider key)* | | | |
-| booking-intermittent-500 | *(not run — one provider key)* | | | |
+`compare_models.py` had a single provider and nothing to compare it against. No
+results are reported for it, because there are none.
 
 What we ran instead was the control condition: the same incident with the model
 removed entirely. That is a weaker experiment in one sense — the offline engine
 is not a second opinion, it is a floor — but it isolates the AI's contribution
 more cleanly than a model-versus-model diff would.
 
-| | Offline engine | gemini-2.5-flash |
+| Measure | Offline engine | gemini-2.5-flash |
 |---|---|---|
 | Leading hypothesis | *"The failure is centred on: ERROR HikariPool-payment connection is not available…"* | *"v2.4.1's pooled client and retry logic exhaust connections under rising upstream gateway latency"* |
 | Top confidence | 0.32 | 0.75 |

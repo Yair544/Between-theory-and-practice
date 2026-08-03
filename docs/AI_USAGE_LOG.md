@@ -105,7 +105,7 @@ key was revoked and reissued — but it is worth writing down, because this proj
 is *about* being careful with what leaves your machine and we did the exact thing
 `redaction.py` exists to prevent.
 
-Three things this made concrete:
+Two things this made concrete:
 
 1. **A chat window is a third party.** We had already written a module that
    strips keys out of logs before they reach a provider, and then hand-carried
@@ -113,6 +113,7 @@ Three things this made concrete:
    humans using it.
 2. **Revocation is the only real remedy.** Once a secret is in a transcript you
    cannot un-send it. "It was probably fine" is not a control.
+
 What changed as a result: `gemini_client.py` now detects the "API key not valid"
 response and reports it clearly instead of surfacing a bare HTTP 400.
 
@@ -223,7 +224,7 @@ We could not run the two-LLM comparison: only a Gemini key was configured, so
 the control condition — the same incident with the model removed entirely — and
 the contrast is sharper than a model-versus-model diff would have been.
 
-| | Offline engine | gemini-2.5-flash |
+| Measure | Offline engine | gemini-2.5-flash |
 |---|---|---|
 | Leading "hypothesis" | *"The failure is centred on: ERROR HikariPool-payment connection is not available…"* | *"v2.4.1's pooled client and retry logic exhaust connections under rising upstream gateway latency"* |
 | Top confidence | 0.32 | 0.75 |
