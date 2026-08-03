@@ -21,6 +21,17 @@ htmlcov/
 exports/
 *.log
 
+# Demo video - GitHub rejects files over 100MB. The brief asks for a link to
+# the video, not the file itself; upload it and put the URL in the README.
+*.mp4
+*.mov
+*.avi
+
+# The submitted Word report carries our ID numbers on its title page, and this
+# repository is public. The Markdown source in docs/ is the version that ships
+# here; the .docx goes to the instructor directly.
+IncidentIQ - Reflective Report.docx
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

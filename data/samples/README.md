@@ -35,3 +35,17 @@ find. The synthetic data was generated with AI and then hand-edited — mostly t
 None of the three has its answer written down anywhere in the repository. That
 is deliberate: the point of the exercise is to check whether the tool's
 reasoning survives contact with evidence that does not spell out the conclusion.
+
+## Example output
+
+[`example-output.md`](example-output.md) is a real, unedited run of
+`checkout-v241` through `gemini-2.5-flash` — the draft postmortem exactly as the
+tool exports it. Worth reading for what the reasoning-risks section caught: the
+deterministic rule flagged confirmation bias on the leading hypothesis, and the
+model's own audit flagged anchoring. It scored 100% grounding across 29 checked
+claims with no invented citations, and it did *not* fall for the post hoc trap
+above — it recorded that gateway latency was already climbing before the deploy.
+
+Re-running it will not reproduce this file byte-for-byte; model output varies
+between runs. The structure, the evidence IDs and the verification numbers are
+the stable parts.

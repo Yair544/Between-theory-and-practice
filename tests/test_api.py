@@ -1,9 +1,10 @@
 """
 End-to-end tests through the HTTP layer.
 
-These run in offline mode (no key is set in CI), which is exactly the path a
-marker takes on first launch, so the suite is also a check that the
-no-credentials experience works.
+These run in offline mode - pinned there by the `_force_offline` fixture in
+conftest, not left to whether a key happens to be configured. That is exactly
+the path a marker takes on first launch, so the suite doubles as a check that
+the no-credentials experience works.
 """
 
 from __future__ import annotations

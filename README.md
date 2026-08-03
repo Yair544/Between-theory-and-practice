@@ -12,6 +12,12 @@ reasoning-risks report, prioritised next steps, and a draft postmortem.
 assumptions, hypotheses and actions apart, makes every AI claim cite the exact
 input line it rests on, and checks those citations before you ever read them.
 
+**Authors:** Ofek Revach · Yair Markovski
+**Demo video:** https://drive.google.com/file/d/1KPN79sRCxPNyKru3YtrLTYIus_lmCUpb/view?usp=sharing
+**Reflective report:** [`docs/REFLECTIVE_REPORT.md`](docs/REFLECTIVE_REPORT.md)
+**Example input:** [`data/samples/`](data/samples/) ·
+**Example output:** [`data/samples/example-output.md`](data/samples/example-output.md)
+
 ---
 
 ## Run it
@@ -196,11 +202,13 @@ are most likely to touch:
 |---|---|
 | Google Gemini (`gemini-2.5-flash`) | The analysis and challenge passes at runtime (default provider) |
 | Anthropic Claude (`claude-opus-4-8`) | Alternative provider; the bulk of development assistance |
-| OpenAI (`gpt-4o`) | Optional third provider for the cross-model comparison in `docs/PROMPTS.md` |
+| OpenAI (`gpt-4o`) | Optional third provider for the cross-model comparison in `tools/compare_models.py` |
 
 The prompts the system sends are in `backend/services/prompts.py` and are
-reproduced with commentary in `docs/PROMPTS.md`. Where AI helped during
-development, and where it misled us, is recorded in `docs/AI_USAGE_LOG.md`.
+reproduced with commentary in [`docs/PROMPTS.md`](docs/PROMPTS.md). Where AI
+helped during development, and where it misled us, is recorded in
+[`docs/AI_USAGE_LOG.md`](docs/AI_USAGE_LOG.md). The full write-up is
+[`docs/REFLECTIVE_REPORT.md`](docs/REFLECTIVE_REPORT.md).
 
 ## Limitations
 
