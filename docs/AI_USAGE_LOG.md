@@ -3,21 +3,13 @@
 A running record of where AI helped during this project and where it misled us.
 The brief asks for both, and the second list is the more useful one.
 
-The last section records what we actually observed running the finished tool,
-including the places where the expected failure did not occur. Reporting "no
+Entries are grouped by what the AI did to us rather than by date: where it
+helped, where it misled us, and what we observed running the finished tool.
+Each one states its outcome and what we changed as a result.
+
+The last group matters most. It records what the tool actually did on real runs,
+including the places where the expected failure did not occur — reporting "no
 hallucination appeared" is more useful than hunting until one does.
-
----
-
-## Format
-
-```
-### YYYY-MM-DD — short title
-Task:      what we asked for
-Tool:      which model / interface
-Outcome:   helped | misled | mixed
-What happened, and what we did about it.
-```
 
 ---
 
